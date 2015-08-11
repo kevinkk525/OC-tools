@@ -9,7 +9,7 @@ local f --handler
 local trans={} --transceiver
 local eBuffer={} --enderio capacitor
 local eSource={} --creative capacitor
-local user={}
+local user={} --username is just a channel name, shopAPI has to take care of username-->channel conversion
 
 local trans_tmp={}
 local eBuffer_tmp={}
@@ -140,13 +140,101 @@ function s.initTessIO()
     end
 end
 
+function s.test()
+    print("creative -> buffer")
+    for i=1,#eSource do
+        local energy={}
+        energy[1]=eBuffer[i][1].getEnergyStored()
+        energy[0]=eBuffer[i][0].getEnergyStored()
+        eSource[i].setIOMode(1,"pull")
+        eSource[i].setIOMode(0,"push")
+        os.sleep(1)
+        eSource[i].setIOMode(1,"disabled")
+        eSource[i].setIOMode(0,"disabled")
+        if energy[1]==eBuffer[i][1].getEnergyStored() or energy[0]=eBuffer[i][0].getEnergyStored() then
+            print("test failed at eSource #"..i)
+        end
+    end
+    print("\ntesting trans->buffer")
+    for i=1,#trans do
+        local energy=eBuffer[i][1].getEnergyStored()
+        trans[i].setIOMode(1,"pull")
+        os.sleep(2)
+        trans[i].setIOMode(1,"disabled")
+        if energy==eBuffer[i][1].getEnergyStored() then
+            print("test failed at trans #"..i)
+        end
+    end
+    print("\n Test done")
+end
+
+function s.getUsers() return user end
+
+function s.getTransNumber() return #trans end
+
+function s.receive(username)
+    if not user[username] then return false,"no such user" end
+    trans[user[username]].setReceiveChannel("item",username,true)
+    trans[user[username]].setIOMode(3,"pull")
+    print(username.." activated pull")
+    return "receiving"
+end
+
+function s.send(username)
+    if not user[username] then return false,"no such user" end
+    trans[user[username]].setIOMode(3,"push")
+    print(username.." activated push")
+    return "sending"
+end
+
+function s.close(username)
+    if not user[username] then return false,"no such user" end
+    trans[user[username]].setReceiveChannel("item",username,false)
+    trans[user[username]].setIOMode(3,"disabled")
+    print(username.." closed")
+    return "closed"
+end
+
+function s.registerUser(username)
+    if user[username] then return false,"user already registered" end
+    if s.getUserNumber()==#trans then return false,"no available transceivers" end
+    for i=1,#trans do
+        if not user[i] then
+            trans[i].setSendChannel("item",username,true)
+            --trans[i].setReceiveChannel("item",username,true) --prevents item loss
+            user[i]=username
+            user[username]=i
+            break
+        end
+    end
+    return true,"user added"         
+end
+
+function s.removeUser(username)
+    if not user[username] then return false,"user not registered" end
+    trans[user[username]].setSendChannel("item",username,false)
+    trans[user[username]].setReceiveChannel("item",username,false)
+    user[i]=nil
+    user[username]=nil
+    return true,"user removed"
+end
+
+function s.getUserNumber()
+    local j=0
+    for i=1,#trans do
+        if user[i] then
+            j=j+1
+        end
+    end
+    return j
+end
+    
 function s.initialize(handler)
     trans={} --transceiver
     eBuffer={} --enderio capacitor
     eSource={}
     f=handler
     regServer()
-    f.addTask(registerSwitch)
     s.initTessIO()
     trans_buffer()
     creative_trans()
@@ -162,6 +250,8 @@ function s.initialize(handler)
     f.registerFunction(s.receive,"receive")
     f.registerFunction(s.close,"close")
     f.registerFunction(s.getTransNumber,"getTransNumber")
+    f.registerFunction(s.registerUser,"registerUser")
+    f.registerFnction(s.getUserNumber,"getUserNumber")
     f.addTask(registerSwitch)
 end
 
