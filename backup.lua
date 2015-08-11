@@ -30,6 +30,35 @@ local function close()
     files={}
 end
 
+local registrationServer
+
+local function regServer()
+    local file=io.open("/lib/registrationServer","r")
+    if file then
+        registrationServer=file:read()
+        file:close()
+    else
+        print("Please enter registrationServer address or quit")
+        local inp=io.read()
+        if inp=="quit" then os.exit()
+        else 
+            registrationServer=inp
+            file=io.open("/lib/registrationServer","w")
+            file:write(registrationServer)
+            file:close()
+        end
+    end
+end
+
+local function registerSwitch()
+    if f.getStatus()=="added" then --[1]to,[2]port,[3]message,[4]com
+        hooks.m.send({registrationServer,801,{"H398FKri0NieoZ094nI","Backup"},"registerDevice"})
+        f.pause(registerSwitch)
+    elseif f.getStatus()=="standard" then 
+        print(f.getData()[6]) --change this...
+    end
+end
+
 -----------------------
 
 function s.initialize(handler)
@@ -60,6 +89,7 @@ function s.initialize(handler)
     f=handler
     f.registerFunction(s.backup,"backup")
     f.registerFunction(s.getBackup,"getBackup")
+    f.addTask(registerSwitch)
 end
 
 
