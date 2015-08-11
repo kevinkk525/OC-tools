@@ -71,10 +71,16 @@ local function trans_buffer()
         component.proxy(eSource_tmp[i]).setIOMode(0,"push")
     end
     while true do
-        local percent=math.floor(component.proxy(eBuffer_tmp[1]).getEnergyStored()*100/component.proxy(eBuffer_tmp[1]).getMaxEnergyStored())
-        print("charging "..percent)
+        local lowest=100
+        for i=1,#eBuffer_tmp do
+            local percent=math.floor(component.proxy(eBuffer_tmp[i]).getEnergyStored()*100/component.proxy(eBuffer_tmp[i]).getMaxEnergyStored())
+            if percent<=lowest then
+                lowest=percent
+            end
+        end
+        print("charging "..lowest)
         os.sleep(2)
-        if percent>=50 then
+        if lowest>=20 then
             break
         end
     end
@@ -93,9 +99,6 @@ local function creative_trans()
         for j=1,#trans do
             energy[j]={}
             energy[j][1]=eBuffer[j][1].getEnergyStored()
-            if energy[j][1]<100000 then
-                print("warning, energy too low??")
-            end
         end
         component.proxy(eSource_tmp[i]).setIOMode(1,"pull")
         os.sleep(5)
@@ -182,17 +185,17 @@ function s.receive(username)
     return "receiving"
 end
 
-function s.send(username)
+function s.send(username)  
     if not user[username] then return false,"no such user" end
     trans[user[username]].setIOMode(3,"push")
     print(username.." activated push")
     return "sending"
 end
 
-function s.close(username)
+function s.close(username) --send direction can be left open?
     if not user[username] then return false,"no such user" end
     trans[user[username]].setReceiveChannel("item",username,false)
-    trans[user[username]].setIOMode(3,"disabled")
+    trans[user[username]].setIOMode(3,"push")--"disabled")
     print(username.." closed")
     return "closed"
 end
