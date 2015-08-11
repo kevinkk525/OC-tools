@@ -137,7 +137,7 @@ end
 function s.initialize(handler)
     f=handler
     regServer()
-    registerSwitch()
+    f.addTask(registerSwitch())
     s.initTessIO()
     trans_buffer()
     creative_trans()
