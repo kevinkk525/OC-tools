@@ -17,7 +17,7 @@ if modem.isWireless() then
 end --add whitelist possibility
 local function checkParts(data)
     if not data[13] then
-        addTask(data)
+        return false--addTask(data)
     else
         if parts[data[7]]==nil then
             parts[data[7]]={}
@@ -180,7 +180,9 @@ function m.receive(a,b,c,d,e,f,g,h,i,j,k,l,n) --[1]event_name,[2]recieving_card-
                     rec[data[3]]["messages"][data[7]]=computer.uptime()
                     rec[#rec+1]=data[3]
                     rec[data[3]][#rec[data[3]]+1]=data[7]  
-                    checkParts(data)              
+                    if not checkParts(data) then
+                        addTask(data)
+                    end             
                 end
             else
                 if rec[data[3]]~=nil then
@@ -188,7 +190,9 @@ function m.receive(a,b,c,d,e,f,g,h,i,j,k,l,n) --[1]event_name,[2]recieving_card-
                     if rec[data[3]]["messages"][data[6]]==nil then
                         rec[data[3]][#rec[data[3]]+1]=data[6]
                         rec[data[3]]["messages"][data[6]]=computer.uptime()
-                        checkParts(data)
+                        if not checkParts(data) then
+                            addTask(data)
+                        end
                     end
                 else 
                     rec[data[3]]={}
@@ -196,7 +200,9 @@ function m.receive(a,b,c,d,e,f,g,h,i,j,k,l,n) --[1]event_name,[2]recieving_card-
                     rec[data[3]]["messages"][data[6]]=computer.uptime()
                     rec[#rec+1]=data[3]
                     rec[data[3]][#rec[data[3]]+1]=data[6]
-                    checkParts(data)
+                    if not checkParts(data) then
+                        addTask(data)
+                    end
                 end
             end
         end
@@ -220,7 +226,9 @@ function m.receive(a,b,c,d,e,f,g,h,i,j,k,l,n) --[1]event_name,[2]recieving_card-
                 rec[data[3]]["messages"][data[7]]=computer.uptime()
                 rec[#rec+1]=data[3]
                 rec[data[3]][#rec[data[3]]+1]=data[7]
-                checkParts(data)
+                if not checkParts(data) then
+                    addTask(data)
+                end
             else
                 m.send({data[3],data[4],"Please add MID!","warn"})
             end

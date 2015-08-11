@@ -327,9 +327,9 @@ function f.execute(short) --short: execution without dynamic sleep time
                         end
                     end
                 end
-                if r[#r].id==tmp_id and del_after_exec[r[#r].status]==true then
+                if r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status]==true then
                     f.remove()
-                elseif r[#r].id==tmp_id and del_after_exec[r[#r].status]==false then
+                elseif r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status]==false then
                     moveTo(1)
                 end
             elseif state[r[#r].status]==nil then

@@ -89,6 +89,7 @@ function s.initialize(handler)
     f=handler
     f.registerFunction(s.backup,"backup")
     f.registerFunction(s.getBackup,"getBackup")
+    regServer()
     f.addTask(registerSwitch)
 end
 
