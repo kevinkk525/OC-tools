@@ -93,9 +93,12 @@ local function creative_trans()
         for j=1,#trans do
             energy[j]={}
             energy[j][0]=eBuffer[j][0].getEnergyStored()
+            if energy[j][0]<100000 then
+                print("warning, energy too low??")
+            end
         end
         component.proxy(eSource_tmp[i]).setIOMode(0,"pull")
-        os.sleep(1)
+        os.sleep(5)
         component.proxy(eSource_tmp[i]).setIOMode(0,"disabled")
         for j=1,#trans do
             if energy[j][0]~=eBuffer[j][0] then
@@ -105,7 +108,7 @@ local function creative_trans()
         end
     end
     if #eSource_tmp~=#eSource then
-        print("Error in creative_trans!")
+        print("Error in creative_trans! "..#eSource_tmp..":"..#eSource)
     end
 end
 
