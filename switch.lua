@@ -74,13 +74,13 @@ local function trans_buffer()
         local percent=math.floor(component.proxy(eBuffer_tmp[1]).getEnergyStored()*100/component.proxy(eBuffer_tmp[1]).getMaxEnergyStored())
         print("charging "..percent)
         os.sleep(2)
-        if percent>=0.50 then
+        if percent>=0.40 then
             break
         end
     end
     for i=1,#eSource_tmp do
-        component.proxy(eSource_tmp[i]).setIOMode("disabled",1)
-        component.proxy(eSource_tmp[i]).setIOMode("disabled",0)
+        component.proxy(eSource_tmp[i]).setIOMode(1,"disabled")
+        component.proxy(eSource_tmp[i]).setIOMode(0,"disabled")
     end
     os.sleep(2)
     eBuff(0)
