@@ -15,18 +15,13 @@ local f
 
 local function open(filename)
     for i=1,#path,1 do
-        local insert=false
-        files[i]=io.open(path[i].."/"..filename,"r")
+        files[i]=io.open(path[i]..filename,"r")
         if files[i]==nil then
-            insert=true
-        else
-            files[i]:close()
-        end
-        if insert==true then
-            files[i]=io.open(path[i].."/"..filename,"a")
+            files[i]=io.open(path[i]..filename,"a")
             files[i]:write("{")
         else
-            files[i]=io.open(path[i].."/"..filename,"a")
+            files[i]:close()
+            files[i]=io.open(path[i]..filename,"a")
         end
     end
 end
@@ -61,7 +56,7 @@ function s.initialize(handler)
         end
         file:close()
     else
-        path=serialization.unserialize(file:read())
+        path=serialization.unserialize(file:read("*all"))
         file:close()
     end
     
