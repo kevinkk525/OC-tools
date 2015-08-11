@@ -87,7 +87,7 @@ local function trans_buffer()
     eBuff(1)
 end
 
-local function creative-trans()
+local function creative_trans()
     for i=1,#eSource_tmp do
         local energy={}
         for j=1,#trans do
@@ -140,7 +140,7 @@ function s.initialize(handler)
     registerSwitch()
     s.initTessIO()
     trans_buffer()
-    creative-trans()
+    creative_trans()
     trans_tmp=nil eBuffer_tmp=nil eSource_tmp=nil
     for i=1,#trans do
         trans[i].setReceiveChannel("power","Battery_Out",true)
