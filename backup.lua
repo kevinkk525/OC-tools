@@ -1,11 +1,10 @@
 ------------------------------
-local version="0.9.6b"
+local version="0.9.7b"
 ------------------------------
 local serialization=require("serialization")
 local component=require("component")
 local computer=require("computer")
 local unicode=require("unicode")
-local io=require("io")
 local s={} --functions
 files={}
 path={}
@@ -16,6 +15,7 @@ local f
 --add table conversion in backup
 --on stop remove function from request-handler
 --add authentication to prevent hacking
+--add registration
 
 local function open(filename,mode)
     for i=1,#path,1 do
