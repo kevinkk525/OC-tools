@@ -101,7 +101,7 @@ local function creative_trans()
         os.sleep(5)
         component.proxy(eSource_tmp[i]).setIOMode(1,"disabled")
         for j=1,#trans do
-            if energy[j][1]~=eBuffer[j][1] then
+            if energy[j][1]~=eBuffer[j][1].getEnergyStored() then
                 eSource[j]=component.proxy(eSource_tmp[i])
                 break
             end
