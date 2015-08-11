@@ -47,7 +47,7 @@ function s.initialize(handler)
             print("Enter storage location #"..tostring(#path+1)..", default for default, quit for quit")
             io.flush()
             local tmp2=io.read()
-            if tmp2=="default" then
+            if tmp2=="default" or "" then
                 path[#path+1]="/"
             elseif tmp2=="quit" then
                 break
@@ -55,7 +55,9 @@ function s.initialize(handler)
                 path[#path+1]=tmp2
             end
         end
-        file:write(serialization.serialize(path))
+        if #path>=1 then 
+            file:write(serialization.serialize(path))
+        end
         file:close()
     else
         path=serialization.unserialize(file:read())
