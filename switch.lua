@@ -151,16 +151,18 @@ function s.test()
         os.sleep(1)
         eSource[i].setIOMode(1,"disabled")
         eSource[i].setIOMode(0,"disabled")
-        if energy[1]==eBuffer[i][1].getEnergyStored() or energy[0]=eBuffer[i][0].getEnergyStored() then
+        if energy[1]==eBuffer[i][1].getEnergyStored() or energy[0]==eBuffer[i][0].getEnergyStored() then
             print("test failed at eSource #"..i)
         end
     end
     print("\ntesting trans->buffer")
     for i=1,#trans do
         local energy=eBuffer[i][1].getEnergyStored()
+        trans[i].setReceiveChannel("power","Battery_Out",false)
         trans[i].setIOMode(1,"pull")
         os.sleep(2)
         trans[i].setIOMode(1,"disabled")
+        trans[i].setReceiveChannel("power","Battery_Out",true)
         if energy==eBuffer[i][1].getEnergyStored() then
             print("test failed at trans #"..i)
         end
@@ -251,7 +253,7 @@ function s.initialize(handler)
     f.registerFunction(s.close,"close")
     f.registerFunction(s.getTransNumber,"getTransNumber")
     f.registerFunction(s.registerUser,"registerUser")
-    f.registerFnction(s.getUserNumber,"getUserNumber")
+    f.registerFunction(s.getUserNumber,"getUserNumber")
     f.addTask(registerSwitch)
 end
 
