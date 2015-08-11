@@ -48,9 +48,9 @@ function m.initialize(handler)
     blacklist={} --[from]:[uptime],[blacklist-time]
     local file=io.open("blacklist","r")
     if file==nil then
-        file=io.open("blacklist","w")
+        file=io.open("/lib/blacklist","w")
         file:close()
-        file=io.open("blacklist","r")
+        file=io.open("/lib/blacklist","r")
     end
     local tmp=file:read("*all")
     if tmp~=nil then
