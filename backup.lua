@@ -4,6 +4,7 @@ local version="0.9.6b"
 local serialization=require("serialization")
 local component=require("component")
 local computer=require("computer")
+local unicode=require("unicode")
 local io=require("io")
 local s={} --functions
 local files={}
@@ -16,10 +17,7 @@ local f
 local function open(filename)
     for i=1,#path,1 do
         files[i]=io.open(path[i]..filename,"r")
-        if files[i]==nil then
-            files[i]=io.open(path[i]..filename,"a")
-            files[i]:write("{")
-        else
+        if not files[i]==nil then
             files[i]:close()
             files[i]=io.open(path[i]..filename,"a")
         end
@@ -68,7 +66,7 @@ end
 function s.backup(file_name,data)
     open(file_name)
     for i=1,#files do
-        files[i]:write(data)
+        files[i]:write(data.."\n")
     end
     close()
 end
@@ -81,5 +79,20 @@ function s.stop()
     end
 end
 
+function s.getBackup(file_name)
+    open(file_name)
+    local inp=files[1]:read("*all")
+    local ret={}
+    while true do
+        local t=inp:find("\n")
+        if t then 
+            ret[#ret+1]=unicode.sub(inp,1,t-1)
+            inp=unicode.sub(inp,t+1)
+        else
+            break
+        end
+    end
+    return ret
+end
 
 return s
