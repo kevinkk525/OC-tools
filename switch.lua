@@ -65,7 +65,7 @@ local function eBuff(side)
     end
 end
 
-local function trans-buffer()
+local function trans_buffer()
     for i=1,#eSource_tmp do
         component.proxy(eSource_tmp[i]).setIOMode("push",1)
         component.proxy(eSource_tmp[i]).setIOMode("push",0)
@@ -139,7 +139,7 @@ function s.initialize(handler)
     regServer()
     registerSwitch()
     s.initTessIO()
-    trans-buffer()
+    trans_buffer()
     creative-trans()
     trans_tmp=nil eBuffer_tmp=nil eSource_tmp=nil
     for i=1,#trans do
