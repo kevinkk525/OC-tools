@@ -15,14 +15,11 @@ local f
 --add automatic raid detection
 --add table conversion in backup
 --on stop remove function from request-handler
+--add authentication to prevent hacking
 
 local function open(filename)
     for i=1,#path,1 do
-        files[i]=io.open(path[i]..filename,"r")
-        if not files[i]==nil then
-            files[i]:close()
-            files[i]=io.open(path[i]..filename,"a")
-        end
+        files[i]=io.open(path[i]..filename,"a")
     end
 end
 
@@ -33,7 +30,7 @@ local function close()
     files={}
 end
 
-
+-----------------------
 
 function s.initialize(handler)
     local file=io.open("/backup_path","r") 
@@ -62,6 +59,7 @@ function s.initialize(handler)
     
     f=handler
     f.registerFunction(s.backup,"backup")
+    f.registerFunction(s.getBackup,"getBackup")
 end
 
 
