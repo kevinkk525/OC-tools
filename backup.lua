@@ -7,13 +7,14 @@ local computer=require("computer")
 local unicode=require("unicode")
 local io=require("io")
 local s={} --functions
-local files={}
-local path={}
+files={}
+path={}
 local f
 
 --add browse backup, load backup & send backup, return backup_size, split backups
 --add automatic raid detection
 --add table conversion in backup
+--on stop remove function from request-handler
 
 local function open(filename)
     for i=1,#path,1 do
