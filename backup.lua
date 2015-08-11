@@ -13,6 +13,7 @@ local f
 
 --add browse backup, load backup & send backup, return backup_size, split backups
 --add automatic raid detection
+--add table conversion in backup
 
 local function open(filename)
     for i=1,#path,1 do
@@ -92,6 +93,7 @@ function s.getBackup(file_name)
             break
         end
     end
+    close()
     return ret
 end
 
