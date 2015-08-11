@@ -253,6 +253,6 @@ function m.setException(address) exceptions[address]=computer.uptime() end
 function m.delException(address) exceptions[address]=nil end
 function m.setBlacklist(address,t) blacklist[address]={} blacklist[address][1]=computer.uptime() blacklist[address][2]=t or 20 end
 function m.delBlacklist(address) blacklist[address]=nil end
-function m.stop() local file=io.open("blacklist","w") file:write(serialization.serialize(blacklist)) file:close() end
+function m.stop() local file=io.open("/lib/blacklist","w") file:write(serialization.serialize(blacklist)) file:close() end
 function m.listReceived() return rec end
 return m
