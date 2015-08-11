@@ -71,7 +71,7 @@ local function trans_buffer()
         component.proxy(eSource_tmp[i]).setIOMode(0,"push")
     end
     while true do
-        local percent=math.floor(component.proxy(eBuffer_tmp[1]).getEnergyStored()/component.proxy(eBuffer_tmp[1]).getMaxEnergyStored())
+        local percent=math.floor(component.proxy(eBuffer_tmp[1]).getEnergyStored()*100/component.proxy(eBuffer_tmp[1]).getMaxEnergyStored())
         print("charging "..percent)
         os.sleep(2)
         if percent>=0.50 then
@@ -135,6 +135,9 @@ function s.initTessIO()
 end
 
 function s.initialize(handler)
+    trans={} --transceiver
+    eBuffer={} --enderio capacitor
+    eSource={}
     f=handler
     regServer()
     f.addTask(registerSwitch)
