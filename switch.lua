@@ -74,7 +74,7 @@ local function trans_buffer()
         local percent=math.floor(component.proxy(eBuffer_tmp[1]).getEnergyStored()*100/component.proxy(eBuffer_tmp[1]).getMaxEnergyStored())
         print("charging "..percent)
         os.sleep(2)
-        if percent>=0.40 then
+        if percent>=50 then
             break
         end
     end
@@ -92,16 +92,16 @@ local function creative_trans()
         local energy={}
         for j=1,#trans do
             energy[j]={}
-            energy[j][0]=eBuffer[j][0].getEnergyStored()
-            if energy[j][0]<100000 then
+            energy[j][1]=eBuffer[j][1].getEnergyStored()
+            if energy[j][1]<100000 then
                 print("warning, energy too low??")
             end
         end
-        component.proxy(eSource_tmp[i]).setIOMode(0,"pull")
+        component.proxy(eSource_tmp[i]).setIOMode(1,"pull")
         os.sleep(5)
-        component.proxy(eSource_tmp[i]).setIOMode(0,"disabled")
+        component.proxy(eSource_tmp[i]).setIOMode(1,"disabled")
         for j=1,#trans do
-            if energy[j][0]~=eBuffer[j][0] then
+            if energy[j][1]~=eBuffer[j][1] then
                 eSource[j]=component.proxy(eSource_tmp[i])
                 break
             end
