@@ -17,9 +17,9 @@ local f
 --on stop remove function from request-handler
 --add authentication to prevent hacking
 
-local function open(filename)
+local function open(filename,mode)
     for i=1,#path,1 do
-        files[i]=io.open(path[i]..filename,"a")
+        files[i]=io.open(path[i]..filename,mode)
     end
 end
 
@@ -64,7 +64,7 @@ end
 
 
 function s.backup(file_name,data)
-    open(file_name)
+    open(file_name,"a")
     for i=1,#files do
         files[i]:write(data.."\n")
     end
@@ -80,7 +80,7 @@ function s.stop()
 end
 
 function s.getBackup(file_name)
-    open(file_name)
+    open(file_name,"r")
     local inp=files[1]:read("*all")
     local ret={}
     while true do
