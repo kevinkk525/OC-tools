@@ -67,8 +67,8 @@ end
 
 local function trans_buffer()
     for i=1,#eSource_tmp do
-        component.proxy(eSource_tmp[i]).setIOMode("push",1)
-        component.proxy(eSource_tmp[i]).setIOMode("push",0)
+        component.proxy(eSource_tmp[i]).setIOMode(1,"push")
+        component.proxy(eSource_tmp[i]).setIOMode(0,"push")
     end
     while true do
         local percent=math.floor(component.proxy(eBuffer_tmp[1]).getEnergyStored()/component.proxy(eBuffer_tmp[1]).getMaxEnergyStored())
@@ -137,7 +137,7 @@ end
 function s.initialize(handler)
     f=handler
     regServer()
-    f.addTask(registerSwitch())
+    f.addTask(registerSwitch)
     s.initTessIO()
     trans_buffer()
     creative_trans()
