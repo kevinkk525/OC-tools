@@ -27,7 +27,7 @@ print("\ndownloading request-handler and modem-handler")
 os.execute("wget -f https://github.com/kevinkk525/OC-tools/raw/master/modem-handler.lua /lib/modem_handler.lua")
 os.execute("wget -f https://github.com/kevinkk525/OC-tools/raw/master/request-handler.lua /lib/req_handler.lua")
 
-print("downloading additional content")
+print("\ndownloading additional content")
 for i=1,#args do
     local url="https://github.com/kevinkk525/OC-tools/raw/master/"..args[i]
     local command="wget -f "..url.." /lib/"..args[i]

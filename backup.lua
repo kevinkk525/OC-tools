@@ -72,7 +72,7 @@ end
 function s.backup(filename,data)
     open(filename)
     for i=1,#files,1 do
-        files[i]:write(data.backup)
+        files[i]:write(data)
     end
     close()
 end
