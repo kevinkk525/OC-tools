@@ -35,6 +35,7 @@ local function close()
     for i=1,#path,1 do
         files[i]:close()
     end
+    files={}
 end
 
 
@@ -69,9 +70,9 @@ function s.initialize(handler)
 end
 
 
-function s.backup(filename,data)
-    open(filename)
-    for i=1,#files,1 do
+function s.backup(file_name,data)
+    open(file_name)
+    for i=1,#files do
         files[i]:write(data)
     end
     close()
