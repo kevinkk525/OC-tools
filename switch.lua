@@ -104,6 +104,9 @@ local function creative_trans()
             end
         end
     end
+    if #eSource_tmp~=#eSource then
+        print("Error in creative_trans!")
+    end
 end
 
 --------------------------------
@@ -163,5 +166,4 @@ function s.listTrans() return trans end
 function s.listSource() return eSource end
 function s.listBuffer() return eBuffer end
 function s.listUser() return user end
-function s.listBufferSides() return eBuffer_side end
 return s
