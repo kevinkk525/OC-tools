@@ -258,6 +258,7 @@ function s.initialize(handler)
     f.registerFunction(s.registerUser,"registerUser")
     f.registerFunction(s.getUserNumber,"getUserNumber")
     f.addTask(registerSwitch)
+    print("switch started")
 end
 
 function s.listTrans() return trans end

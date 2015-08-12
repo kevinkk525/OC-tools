@@ -1,5 +1,5 @@
 ------------------------------
-local version="1.1b"
+local version="1.2b"
 ------------------------------
 local serialization=require("serialization")
 local component=require("component")

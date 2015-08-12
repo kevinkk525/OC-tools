@@ -24,6 +24,7 @@ function r.initialize(handler)
         registrations=serialization.unserialize(file:read("*all"))
         file:close()
     end
+    print("server started")
 end
     
 function r.registerDevice(stat_table)
