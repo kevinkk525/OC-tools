@@ -68,7 +68,7 @@ local function initSwitch()
 end
 
 local function changeSwitch(user,mode) --rewrite this function to use normal API calls
-    hooks.m.send({switch,801,user,mode)
+    hooks.m.send({switch,801,user,mode})
     f.getTasks()[f.getID()]={"temp"}
     local wait=true
     local tid=0

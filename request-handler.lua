@@ -157,7 +157,7 @@ function f.remove(x)
     f.delete(x)
 end
 
-function f.delete(x)
+function f.delete(x) --expand to automatically remove index and integer
     x=x or #r
     if r[x].delete~=nil then
         r[x].delete()
@@ -316,7 +316,7 @@ function f.execute(short) --short: execution without dynamic sleep time
                 if r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status]==true then
                     f.remove()
                 elseif r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status]==false then
-                    moveTo(1)
+                    f.moveTo(1)
                 end
             elseif state[r[#r].status]==nil then
                 f.error("Task with wrong status or status not added")
@@ -447,7 +447,7 @@ function f.setCom(x)
     end
 end
  
-function moveTo(x,id)
+function f.moveTo(x,id)
     x=x or #r
     if not id then
         table.insert(r,x,r[#r])
