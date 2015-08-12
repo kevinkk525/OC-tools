@@ -230,20 +230,6 @@ function f.removeVipTask(id)
         end
     end
 end
-    
-function f.pullEvent() --not included in f.execute()! Must be called! --deprecated
-    for i=1,3 do
-        local event_name,arg2,from,port,arg5,message,arg7,arg8,arg9,arg10,arg11,arg12=event.pull(0.5)
-        if events[event_name]~=nil then
-            local tmp={event_name,arg2,from,port,arg5,message,arg7,arg8,arg9,arg10,arg11,arg12}
-            for i=1,#events[event_name],1 do
-                events[event_name][i](tmp)
-            end
-            tmp=nil
-        end
-        event_name,arg2,from,port,arg5,message,arg7,arg8,arg9,arg10,arg11,arg12=nil 
-    end
-end
 
 function f.pause(com) --pause and save next command
     r[#r].com=com 
@@ -461,9 +447,21 @@ function f.setCom(x)
     end
 end
  
-function moveTo(x)
-    table.insert(r,x,r[#r])
-    table.remove(r,#r)
+function moveTo(x,id)
+    x=x or #r
+    if not id then
+        table.insert(r,x,r[#r])
+        table.remove(r,#r)
+    else
+        for i=1,#r do
+            if r[i].id==id then
+                local tmp=r[i]
+                table.remove(r,i)
+                table.insert(r,x,tmp)
+                break
+            end
+        end
+    end
 end
 
 function f.registerFunction(function_pointer,name,overwrite) --pointer or table; because of simplicity and resource saving all functions will
