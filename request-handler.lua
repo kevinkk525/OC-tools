@@ -28,6 +28,25 @@ local task_timeout=30
 --add automatic_update
 --add private network function through registration system (internal execution)
 
+local function added()
+    r[#r].com(r[#r].data)
+end
+
+local function waiting()
+    increment("timeout")
+    if r[r[#r].id]==nil then
+        f.remove()
+    else 
+        table.insert(r,1,r[#r])
+        table.remove(r,#r)
+    end
+end
+
+local function standard()
+    added()
+end
+
+
 function f.error(x) --should be optimized
     print(x)
     f.stop()
@@ -143,7 +162,6 @@ function f.addTask(command,data,id,source,status,add_Data,add_Data_position,prio
                 r[id].status="ready"
                 tmp=r[id]
                 tmp.data=data
-                tmp.status="standard"
             end
         end
         if priority==nil then
@@ -397,24 +415,6 @@ function f.getData(i,p)
     i=i or "data"
     p=p or #r
     return r[p][i]
-end
-
-function added()
-    r[#r].com(r[#r].data)
-end
-
-function waiting()
-    increment("timeout")
-    if r[r[#r].id]==nil then
-        f.remove()
-    else 
-        table.insert(r,1,r[#r])
-        table.remove(r,#r)
-    end
-end
-
-function standard()
-    added()
 end
 
 function f.getTimeout()
