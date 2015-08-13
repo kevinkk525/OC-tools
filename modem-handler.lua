@@ -57,7 +57,7 @@ local function free_cached_msg()
                     rec[from][mid]=nil
                     rec[from].size=rec[from].size-1
                 end
-                if rec[from].size=0 then
+                if rec[from].size==0 then
                     rec[from]=nil
                     rec.size=rec.size-1
                     if rec.size==0 then
@@ -156,11 +156,11 @@ function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of re
     return true 
 end
 
-function m.receive(_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split) --[1]event_name,[2]receiving_card-addr,[3]from,[4]port,arg5,[6]message,[7]mid,[8]com,[9]task-id,[10]arg10,[11]task-id of request,[12]task-id of sending system,[13]split
+function m.receive(_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split) --[1]event_name,[2]receiving_card-addr,[3]from,[4]port,arg5,[6]message,[7]mid,[8]com,[9]task-id,[10]arg10,[11]task-id of request,[12]task-id of sending system,[13]split
     if blacklist[from] then
         if blacklist[from]<computer.uptime() then
             blacklist[from]=nil
-            m.receive(_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split)
+            m.receive(_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split)
         end
     else
         if mid then
@@ -178,11 +178,11 @@ function m.receive(_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_
                 if not recu[uptime] then recu[uptime]={} if not recu.size then recu.size=0 end recu.size=recu.size+1 end
                 if not recu[uptime][from] then recu[uptime][from]={} end
                 recu[uptime][from][mid]=1
-                if not checkParts({_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split}) then
-                    addTask({_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split})
+                if not checkParts({_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split}) then
+                    addTask({_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split})
                 end
             else
-                checkParts({_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split})
+                checkParts({_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split})
             end
         else
             modem.send(from,801,"message rejected, please use the modem_handler API to communicate with tihs PC")
