@@ -1,5 +1,5 @@
 ---config section
-local version="0.9.9.9.7b"
+local version="0.9.9.9.8b"
 ---
 
 local math=require("math")
@@ -86,9 +86,12 @@ function f.initialize(req,modem) --Initialize task-table
     state["standard"][1]=standard
     del_after_exec["added"]=true
     del_after_exec["standard"]=true
+    del_after_exec["ready"]=true
     if modem~=false then
         hooks["m"]=require("modem_handler")
         hooks.m.initialize(f)
+        f.remoteRequest=hooks.m.remoteRequest
+        f.sendCommand=hooks.m.sendCommand
     end
 end
 
@@ -333,7 +336,7 @@ function f.execute(short) --short: execution without dynamic sleep time
                         end
                     end
                 end
-                if r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status]==true then
+                if r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status] then
                     f.remove()
                 elseif r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status]==false then
                     f.moveTo(1)
