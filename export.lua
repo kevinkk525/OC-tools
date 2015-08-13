@@ -71,8 +71,11 @@ end
 --end
 
 local function remote(target,func,data,timeout)
+    if not target or not func or not data then
+        return false,"wrong usage"
+    end
     timeout=timeout or 20
-    local id=f.addTask(hooks.m.send,{target,func,data})
+    local id=f.addTask(function() hooks.m.send,{target,801,data,func} f.pause(function() end) end)
     f.moveTo(nil,id)
     f.execute()
     while true do
@@ -83,7 +86,7 @@ local function remote(target,func,data,timeout)
             f.remove(id)
             return ret
         end
-        if timout<=0 then
+        if timeout<=0 then
             f.remove(id)
             return false,"timed out"
         end

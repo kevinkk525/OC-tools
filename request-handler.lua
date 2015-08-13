@@ -159,12 +159,14 @@ end
 
 function f.delete(x) --expand to automatically remove index and integer
     x=x or #r
-    if r[x].delete~=nil then
-        r[x].delete()
-    elseif r[x].remove~=nil then
-        r[x].remove()
-    end 
-    r[x].id="remove"
+    if r[x] then
+        if r[x].delete~=nil then
+            r[x].delete()
+        elseif r[x].remove~=nil then
+            r[x].remove()
+        end 
+        r[x].id="remove"
+    end
     if type(x)=="number" then
         table.remove(r,x)
     else
