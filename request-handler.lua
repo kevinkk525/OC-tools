@@ -143,6 +143,11 @@ function f.addTask(command,data,id,source,status,add_Data,add_Data_position,prio
         elseif priority=="permanent" then
             table.insert(priority_tasks,#priority_tasks+1,tmp)
         end
+        if status=="ready" then
+            if r[id] then 
+                r[id].status="ready"
+            end
+        end
     else 
         id="wrong ID"
         if source=="external" and hooks.m~=nil then

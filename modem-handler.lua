@@ -41,12 +41,9 @@ local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,
 end
 
 local function checkParts(data)
-    print("checkParts")
     if not data[13] then
-        print("no part")
         return false--addTask(data)
     else
-        print("part "..data[13]..", type="..type(data[13]))
         if parts[data[7]]==nil then
             parts[data[7]]={}
         end
@@ -216,6 +213,35 @@ function m.note(from)
     if rec[from].note>10 then
         rec[from].note=nil
         blacklist[from]=computer.uptime()+60
+    end
+end
+
+function m.sendCommand(target,com,data,port)
+    port=port or 801
+    local id=f.addTask(function() hooks.m.send({target,port,data,com}) end)
+    f.moveTo(nil,id)
+    f.execute()
+    return true
+end
+
+function m.remoteRequest(target,com,data,port,timeout)
+    port=port or 801
+    local id=f.addTask(function() hooks.m.send({target,port,data,com}) f.pause(function() end) end)
+    f.moveTo(nil,id)
+    f.execute()
+    timeout=timeout or 20
+    while true do
+        os.sleep(0.1)
+        timeout=timeout-0.1
+        if f.getStatus(id)=="ready" then
+            local ret=f.getData()
+            f.remove(id)
+            return ret
+        end
+        if timeout<=0 then
+            f.remove(id)
+            return false,"timed out"
+        end
     end
 end
 
