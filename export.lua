@@ -70,23 +70,22 @@ end
 --    hooks.m.send({switch,801,data[1],data[2]})
 --end
 
-local function changeSwitch(user,mode)
-    local id=f.addTask(hooks.m.send,{switch,801,data[1],data[2]})--changeSwitch2,{user,mode})
+local function remote(target,func,data,timeout)
+    timeout=timeout or 20
+    local id=f.addTask(hooks.m.send,{target,func,data})
     f.moveTo(nil,id)
     f.execute()
-    local timeout=20
-    local ret
     while true do
         os.sleep(0.1)
         timeout=timeout-0.1
         if f.listTasks()[id] then
-            ret=f.getData(6,id)
+            local ret=f.getData(6,id)
             f.remove(id)
             return ret
         end
         if timout<=0 then
             f.remove(id)
-            return false,"error, timed out"
+            return false,"timed out"
         end
     end
 end
