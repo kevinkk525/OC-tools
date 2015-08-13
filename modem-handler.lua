@@ -21,9 +21,12 @@ end
 
 
 local function checkParts(data)
+    print("checkParts")
     if not data[13] then
+        print("no part")
         return false--addTask(data)
     else
+        print("part")
         if parts[data[7]]==nil then
             parts[data[7]]={}
         end
@@ -31,7 +34,7 @@ local function checkParts(data)
             if not parts[data[7]][data[13]] then
                 parts[data[7]][data[13]]=data[6]
                 local msgtmp=""
-                for i=1,#parts[data[7]] do
+                for i=#parts[data[7]],1-1 do
                     if parts[data[7]][i]~=nil then
                         msgtmp=msgtmp..parts[data[7]][i]
                     end
@@ -40,6 +43,7 @@ local function checkParts(data)
                 data[6]=msgtmp
                 msgtmp=nil
                 addTask(data)
+                parts[data[7]]=nil
             end
         else
             parts[data[7]][data[13]]=data[6]
@@ -56,6 +60,12 @@ local function free_cached_msg()
                 for mid in pairs(rec[from]) do
                     rec[from][mid]=nil
                     rec[from].size=rec[from].size-1
+                    if parts[mid] then
+                        parts[mid]=nil
+                        local count=0
+                        for a in pairs(parts) do count=count+1 end
+                        if count==0 then parts={} end
+                    end
                 end
                 if rec[from].size==0 then
                     rec[from]=nil
@@ -226,5 +236,6 @@ function m.unlist(address) blacklist[address]=nil end
 function m.stop() event.ignore("modem_message",m.receive) rec=nil recu=nil end
 function m.getReceived() return rec end
 function m.getRecu() return recu end
+function m.getParts() return parts end
 
 return m
