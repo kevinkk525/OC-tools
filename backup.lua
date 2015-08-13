@@ -50,15 +50,6 @@ local function regServer()
     end
 end
 
-local function registerSwitch()
-    if f.getStatus()=="added" then --[1]to,[2]port,[3]message,[4]com
-        hooks.m.send({registrationServer,801,{"H398FKri0NieoZ094nI","Backup"},"registerDevice"})
-        f.pause(registerSwitch)
-    elseif f.getStatus()=="standard" then 
-        print(f.getData()[6]) --change this...
-    end
-end
-
 -----------------------
 
 function s.initialize(handler)
@@ -90,7 +81,7 @@ function s.initialize(handler)
     f.registerFunction(s.backup,"backup")
     f.registerFunction(s.getBackup,"getBackup")
     regServer()
-    f.addTask(registerSwitch)
+    print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","Backup"}))
 end
 
 

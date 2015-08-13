@@ -35,15 +35,6 @@ local function regServer()
     end
 end
 
-local function registerSwitch()
-    if f.getStatus()=="added" then --[1]to,[2]port,[3]message,[4]com
-        hooks.m.send({registrationServer,801,{"H398FKri0NieoZ094nI","Switch"},"registerDevice"})
-        f.pause(registerSwitch)
-    elseif f.getStatus()=="standard" then 
-        print(f.getData()[6]) --change this...
-    end
-end
-
 local function eBuff(side)
     for i=1,#trans do
         local energy={}
@@ -257,7 +248,7 @@ function s.initialize(handler)
     f.registerFunction(s.getTransNumber,"getTransNumber")
     f.registerFunction(s.registerUser,"registerUser")
     f.registerFunction(s.getUserNumber,"getUserNumber")
-    f.addTask(registerSwitch)
+    print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","Switch"}))
     print("switch started")
 end
 
