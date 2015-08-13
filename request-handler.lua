@@ -61,6 +61,8 @@ function f.initialize(req,modem) --Initialize task-table
     state["added"][1]=added
     state["waiting"]={}
     state["waiting"][1]=waiting
+    state["ready"]={}
+    state["ready"][1]=standard
     state["standard"]={}
     state["standard"][1]=standard
     del_after_exec["added"]=true
