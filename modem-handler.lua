@@ -1,5 +1,5 @@
 ------------------------------
-local version="1.5b"
+local version="1.6b"
 ------------------------------
 local serialization=require("serialization")
 local component=require("component")
@@ -11,13 +11,17 @@ local rec={}
 local recu={} --uptime table of received messages
 local parts={} --temporary storage for splitted messages
 local blacklist={}
+local event=require"event"
 modem.open(801)
+
+local timer --temporary
+
+--rec={size=int,from={[mid]=1,size=int}}
+--recu={[uptime]={[from]={[mid]=1}},size=int}
 
 if modem.isWireless() then
     modem.setStrength(400)
 end 
-
---add whitelist possibility
 
 local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Data_position,priority
     data[6]=data[6] or ""
@@ -36,13 +40,13 @@ local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,
     local com=data[8]
     data[8]=nil
     data[7]=nil
-    f.addTask(com,data,id,"external") --data: 3:from,4:port,5:arg5,6:data
+    f.addTask(com,data,id,"external")
     return true
 end
 
 local function checkParts(data)
     if not data[13] then
-        return false--addTask(data)
+        return false
     else
         if parts[data[7]]==nil then
             parts[data[7]]={}
@@ -102,6 +106,10 @@ local function free_cached_msg()
     os.sleep(0)
 end
 
+local function empty_cache() --temporary solution
+    timer=event.timer(30,free_cached_msg,math.huge)
+end
+
 local function randID(x) 
     local id=tostring(math.random(1,100)) 
     if not x then 
@@ -114,7 +122,7 @@ end
 
 --------------------------------------
 
-function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of request),[6]arg10,[7]source,[8]task-id of sending system(automatically added),[9]split message?
+function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of request),[6]arg10,[7]source,[8]task-id of sending system(automatically added),[9]split message
     if type(data[1])~="string" or type(data[2])~="number" then
         return "Wrong parameter"
     end
@@ -191,7 +199,7 @@ function m.receive(_,_,from,port,_,message,mid,com,task_id,arg10,request_id,task
                 checkParts({_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split})
             end
         else
-            modem.send(from,801,"message rejected, please use the modem_handler API to communicate with tihs PC")
+            modem.send(from,801,"message rejected, please use the modem_handler API to communicate with this PC")
         end
     end
 end
@@ -247,18 +255,19 @@ end
 
 function m.initialize(handler)
     rec={} --received_list
-    blacklist={} --[from]:[uptime]
+    recu={}
     f=handler
     if f~=nil then
         f.addEvent("modem_message",m.receive)
     end
     print("modem_handler started")
+    empty_cache() --temporary solution
 end
 
 function m.getBlacklist() return blacklist end
 function m.blacklist(address,dt) blacklist[address]=computer.uptime()+dt return true end
 function m.unlist(address) blacklist[address]=nil end
-function m.stop() event.ignore("modem_message",m.receive) rec=nil recu=nil end
+function m.stop() event.ignore("modem_message",m.receive) event.cancel(timer) rec=nil recu=nil end
 function m.getReceived() return rec end
 function m.getRecu() return recu end
 function m.getParts() return parts end
