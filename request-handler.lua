@@ -1,5 +1,5 @@
 ---config section
-local version="0.9.9.9.6b"
+local version="0.9.9.9.7b"
 ---
 
 local math=require("math")
@@ -59,8 +59,6 @@ function f.initialize(req,modem) --Initialize task-table
     ext={} --external commands: safe to be executed my clients
     state["added"]={}
     state["added"][1]=added
-    state["ready"]={}
-    state["ready"][1]=ready
     state["waiting"]={}
     state["waiting"][1]=waiting
     state["standard"]={}
@@ -138,15 +136,18 @@ function f.addTask(command,data,id,source,status,add_Data,add_Data_position,prio
     tmp[add_Data_position]=add_Data
     -------------
     if adding==true then
+        if status=="ready" then
+            if r[id] then 
+                r[id].status="ready"
+                tmp=r[id]
+                tmp.data=data
+                tmp.status="standard"
+            end
+        end
         if priority==nil then
             table.insert(r,1,tmp)
         elseif priority=="permanent" then
             table.insert(priority_tasks,#priority_tasks+1,tmp)
-        end
-        if status=="ready" then
-            if r[id] then 
-                r[id].status="ready"
-            end
         end
     else 
         id="wrong ID"
@@ -162,7 +163,7 @@ function f.remove(x)
     f.delete(x)
 end
 
-function f.delete(x) --expand to automatically remove index and integer
+function f.delete(x)
     x=x or #r
     if r[x] then
         if r[x].delete~=nil then
@@ -173,9 +174,17 @@ function f.delete(x) --expand to automatically remove index and integer
         r[x].id="remove"
     end
     if type(x)=="number" then
+        if r[r[x].id] then
+            r[r[x].id]=nil
+        end
         table.remove(r,x)
     else
         r[x]=nil
+        for i=1,#r do
+            if r[i].id==x then
+                r[i]=nil
+            end
+        end
     end
 end
 
@@ -246,20 +255,6 @@ function f.pause(com) --pause and save next command
     table.remove(r,#r)
 end
 
-function f.continue()
-    if r[r[#r].id]~=nil then 
-        tmp=r[#r].data
-        r[#r]=r[r[#r].id] --Data from Events should be written by "f.addData(x,i)"
-        r[r[#r].id]=nil
-        r[#r].status="standard"
-        r[#r].data=tmp
-        r[#r].com(r[#r].data)
-        r[r[#r].id]=nil
-    else 
-        table.remove(r,#r)
-    end
-end
-
 function f.execute(short) --short: execution without dynamic sleep time
     if r[#r]~=nil then
         if r[#r].id=="remove" then
@@ -310,8 +305,6 @@ function f.execute(short) --short: execution without dynamic sleep time
                         if tmp_return~=nil then
                             hooks.m.send({r[#r].data[3],r[#r].data[4],tmp_return,nil,r[#r].data[9] or r[#r].data[11]},true)
                         end
-                    elseif r[#r].status=="ready" then
-                        f.continue()
                     else 
                         if hooks.m~=nil then
                             if hooks.m.note~=nil then
@@ -421,10 +414,6 @@ end
 function standard()
     added()
 end
-
-function ready()
-    f.continue()
-end   
 
 function f.getTimeout()
     return r[#r].timeout
