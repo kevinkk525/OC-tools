@@ -19,6 +19,26 @@ end
 
 --add whitelist possibility
 
+local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Data_position,priority
+    data[6]=data[6] or ""
+    local tmp=serialization.unserialize(data[6])
+    if tmp~=nil then
+        data[6]=tmp
+    end
+    tmp=nil
+    data[1]=nil
+    data[2]=nil
+    local id=nil
+    id=id or data[12] --data[12] should only be an id in the answer!
+    if type(data[9])~="table" then
+        id=data[9]
+    end
+    local com=data[8]
+    data[8]=nil
+    data[7]=nil
+    f.addTask(com,data,id,"external") --data: 3:from,4:port,5:arg5,6:data
+    return true
+end
 
 local function checkParts(data)
     print("checkParts")
@@ -26,7 +46,7 @@ local function checkParts(data)
         print("no part")
         return false--addTask(data)
     else
-        print("part")
+        print("part "..data[13]..", type="..type(data[13]))
         if parts[data[7]]==nil then
             parts[data[7]]={}
         end
@@ -34,7 +54,7 @@ local function checkParts(data)
             if not parts[data[7]][data[13]] then
                 parts[data[7]][data[13]]=data[6]
                 local msgtmp=""
-                for i=#parts[data[7]],1-1 do
+                for i=#parts[data[7]],1,-1 do
                     if parts[data[7]][i]~=nil then
                         msgtmp=msgtmp..parts[data[7]][i]
                     end
@@ -83,27 +103,6 @@ local function free_cached_msg()
         recu={}
     end
     os.sleep(0)
-end
-
-local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Data_position,priority
-    data[6]=data[6] or ""
-    local tmp=serialization.unserialize(data[6])
-    if tmp~=nil then
-        data[6]=tmp
-    end
-    tmp=nil
-    data[1]=nil
-    data[2]=nil
-    local id
-    id=data[12] --data[12] should only be an id in the answer!
-    if type(data[9])~="table" then
-        id=data[9]
-    end
-    local com=data[8]
-    data[8]=nil
-    data[7]=nil
-    f.addTask(com,data,id,"external") --data: 3:from,4:port,5:arg5,6:data
-    return true
 end
 
 local function randID(x) 
