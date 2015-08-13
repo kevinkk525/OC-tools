@@ -429,8 +429,11 @@ function f.getLifetime()
     return r[#r].lifetime
 end
 
-function f.getStatus()
-    return r[#r].status
+function f.getStatus(id)
+    id=id or #r
+    if r[id] then
+        return r[id].status
+    end
 end
 
 function f.getID()
