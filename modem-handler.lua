@@ -1,5 +1,5 @@
 ------------------------------
-local version="1.2b"
+local version="1.5b"
 ------------------------------
 local serialization=require("serialization")
 local component=require("component")
@@ -8,13 +8,18 @@ local computer=require("computer")
 local m={} --functions
 local lifetime_msg=50
 local rec={}
+local recu={} --uptime table of received messages
 local parts={} --temporary storage for splitted messages
-local exceptions={}
 local blacklist={}
 modem.open(801)
+
 if modem.isWireless() then
     modem.setStrength(400)
-end --add whitelist possibility
+end 
+
+--add whitelist possibility
+
+
 local function checkParts(data)
     if not data[13] then
         return false--addTask(data)
@@ -42,47 +47,35 @@ local function checkParts(data)
         return true
     end
 end
-function m.initialize(handler)
-    rec={} --received_list, --format: rec_index="from" ,[from]:[messages]:[mid=uptime]][message=uptime] ,[note]
-    exceptions={} --address_list for exceptions of blacklist check and message saving
-    blacklist={} --[from]:[uptime],[blacklist-time]
-    local file=io.open("blacklist","r")
-    if file==nil then
-        file=io.open("/lib/blacklist","w")
-        file:close()
-        file=io.open("/lib/blacklist","r")
-    end
-    local tmp=file:read("*all")
-    if tmp~=nil then
-        blacklist=serialization.unserialize(tmp) --maybe warn on corrupted saves
-    end
-    if blacklist==nil then
-        blacklist={}
-    end
-    file:close()
-    f=handler
-    if f~=nil then
-        f.addEvent("modem_message",m.receive)
-    end
-end
-function free_cached_msg(data)
-    local tmp={}
+
+local function free_cached_msg()
     local up=computer.uptime()-lifetime_msg
-    for i=1,#rec[data],1 do
-        if rec[data]["messages"][rec[data][i]]<up then
-            if parts[rec[data][i]] then
-                parts[rec[data][i]]=nil
+    for i in pairs(recu) do
+        if i<=up then
+            for from in pairs(recu[i]) do
+                for mid in pairs(rec[from]) do
+                    rec[from][mid]=nil
+                    rec[from].size=rec[from].size-1
+                end
+                if rec[from].size=0 then
+                    rec[from]=nil
+                    rec.size=rec.size-1
+                    if rec.size==0 then
+                        rec={}
+                    end
+                end
             end
-            rec[data]["messages"][rec[data][i]]=nil
-            tmp[#tmp+1]=i
+            recu[i]=nil
+            recu.size=recu.size-1
         end
     end
-    for i=1,#tmp do
-        table.remove(rec[data],tmp[i]-i+1)
+    if recu.size==0 then
+        recu={}
     end
-    tmp={}
+    os.sleep(0)
 end
-function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Data_position,priority
+
+local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Data_position,priority
     data[6]=data[6] or ""
     local tmp=serialization.unserialize(data[6])
     if tmp~=nil then
@@ -91,8 +84,8 @@ function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Da
     tmp=nil
     data[1]=nil
     data[2]=nil
-    local id=nil
-    id=id or data[12] --data[12] should only be an id in the answer!
+    local id
+    id=data[12] --data[12] should only be an id in the answer!
     if type(data[9])~="table" then
         id=data[9]
     end
@@ -102,6 +95,19 @@ function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Da
     f.addTask(com,data,id,"external") --data: 3:from,4:port,5:arg5,6:data
     return true
 end
+
+local function randID(x) 
+    local id=tostring(math.random(1,100)) 
+    if not x then 
+        if rec[id] then 
+            id=f.randID() 
+        end 
+    end 
+    return id 
+end
+
+--------------------------------------
+
 function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of request),[6]arg10,[7]source,[8]task-id of sending system(automatically added),[9]split message?
     if type(data[1])~="string" or type(data[2])~="number" then
         return "Wrong parameter"
@@ -149,118 +155,76 @@ function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of re
     tmp2=nil
     return true 
 end
-function m.receive(a,b,c,d,e,f,g,h,i,j,k,l,n) --[1]event_name,[2]recieving_card-addr,[3]from,[4]port,arg5,[6]message,[7]mid,[8]com,[9]task-id,[10]arg10,[11]task-id of request,[12]task-id of sending system,[13]split
-    local data={a,b,c,d,e,f,g,h,i,j,k,l,n}
-    if exceptions[data[3]]==nil then
-        if blacklist[data[3]]~=nil then
-            if blacklist[data[3]][1]+blacklist[data[3]][2]>computer.uptime() or blacklist[data[3]][1]<computer.uptime() then
-                blacklist[data[3]]=nil
-                for i=1,#blacklist,1 do
-                    if blacklist[i]==data[3] then
-                        table.remove(blacklist,i)
-                        break
-                    end
-                end
-                m.receive(a,b,c,d,e,f,g,h,i,j,k,l,n)
-            end
-        else
-            if data[7]~=nil then
-                if rec[data[3]]~=nil then
-                    free_cached_msg(data[3])
-                    if checkParts(data) then
-                        return true
-                    end
-                    if rec[data[3]]["messages"][data[7]]==nil then
-                        rec[data[3]]["messages"][data[7]]=computer.uptime()
-                        rec[data[3]][#rec[data[3]]+1]=data[7] 
-                    end
-                else
-                    rec[data[3]]={}
-                    rec[data[3]]["messages"]={}
-                    rec[data[3]]["messages"][data[7]]=computer.uptime()
-                    rec[#rec+1]=data[3]
-                    rec[data[3]][#rec[data[3]]+1]=data[7]  
-                    if not checkParts(data) then
-                        addTask(data)
-                    end             
-                end
-            else
-                if rec[data[3]]~=nil then
-                    free_cached_msg(data[3])
-                    if rec[data[3]]["messages"][data[6]]==nil then
-                        rec[data[3]][#rec[data[3]]+1]=data[6]
-                        rec[data[3]]["messages"][data[6]]=computer.uptime()
-                        if not checkParts(data) then
-                            addTask(data)
-                        end
-                    end
-                else 
-                    rec[data[3]]={}
-                    rec[data[3]]["messages"]={}
-                    rec[data[3]]["messages"][data[6]]=computer.uptime()
-                    rec[#rec+1]=data[3]
-                    rec[data[3]][#rec[data[3]]+1]=data[6]
-                    if not checkParts(data) then
-                        addTask(data)
-                    end
-                end
-            end
+
+function m.receive(_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split) --[1]event_name,[2]receiving_card-addr,[3]from,[4]port,arg5,[6]message,[7]mid,[8]com,[9]task-id,[10]arg10,[11]task-id of request,[12]task-id of sending system,[13]split
+    if blacklist[from] then
+        if blacklist[from]<computer.uptime() then
+            blacklist[from]=nil
+            m.receive(_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split)
         end
     else
-        if rec[data[3]]~=nil then
-            free_cached_msg(data[3])
-            if data[7]~=nil then
-                if checkParts(data) then
-                    return true
-                end
-                if rec[data[3]]["messages"][data[7]]~=nil then
-                    rec[data[3]]["messages"][data[7]]=computer.uptime()
+        if mid then
+            if not rec[from] then
+                rec[from]={}
+                rec[from].size=0
+                if not rec.size then rec.size=0 end
+                rec.size=rec.size+1
+            end
+            if not rec[from][mid] then
+                rec[from][mid]=1
+                if not rec[from].size then rec[from].size=0 end
+                rec[from].size=rec[from].size+1
+                local uptime=computer.uptime()
+                if not recu[uptime] then recu[uptime]={} if not recu.size then recu.size=0 end recu.size=recu.size+1 end
+                if not recu[uptime][from] then recu[uptime][from]={} end
+                recu[uptime][from][mid]=1
+                if not checkParts({_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split}) then
+                    addTask({_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split})
                 end
             else
-                m.send({data[3],data[4],"Please add MID!","warn"})
+                checkParts({_,_,from,_,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split})
             end
         else
-            if data[7]~=nil then
-                rec[data[3]]={}
-                rec[data[3]]["messages"]={}
-                rec[data[3]]["messages"][data[7]]=computer.uptime()
-                rec[#rec+1]=data[3]
-                rec[data[3]][#rec[data[3]]+1]=data[7]
-                if not checkParts(data) then
-                    addTask(data)
-                end
-            else
-                m.send({data[3],data[4],"Please add MID!","warn"})
-            end
+            modem.send(from,801,"message rejected, please use the modem_handler API to communicate with tihs PC")
         end
     end
 end
+
 function m.open(port)
-    if port~=nil and type(port)=="number" then
+    if type(port)=="number" then
         modem.open(port)
-    else 
-        f.error("Wrong port") --should be a warning
+    else
+        return false,"must be number"
     end
 end
+
 function m.note(from)
-    if rec[from].note==nil then
-        rec[from].note=0
+    if not rec[from].note then 
+        rec[from].note=1
+    else
+        rec[from].note=rec[from].note+1
     end
-    rec[from].note=rec[from].note+1
     if rec[from].note>10 then
         rec[from].note=nil
-        blacklist[from]={}
-        blacklist[from][1]=computer.uptime()
-        blacklist[from][2]=20
-        blacklist[#blacklist+1]=from
-end end
-function randID(x) local id=tostring(math.random(1,100)) if x==nil then if rec[id]~=nil then id=f.randID() end end return id end
-function m.showBlacklist() return blacklist end
-function m.showExceptions() return exceptions end
-function m.setException(address) exceptions[address]=computer.uptime() end
-function m.delException(address) exceptions[address]=nil end
-function m.setBlacklist(address,t) blacklist[address]={} blacklist[address][1]=computer.uptime() blacklist[address][2]=t or 20 end
-function m.delBlacklist(address) blacklist[address]=nil end
-function m.stop() local file=io.open("/lib/blacklist","w") file:write(serialization.serialize(blacklist)) file:close() end
-function m.listReceived() return rec end
+        blacklist[from]=computer.uptime()+60
+    end
+end
+
+function m.initialize(handler)
+    rec={} --received_list
+    blacklist={} --[from]:[uptime]
+    f=handler
+    if f~=nil then
+        f.addEvent("modem_message",m.receive)
+    end
+    print("modem_handler started")
+end
+
+function m.getBlacklist() return blacklist end
+function m.blacklist(address,dt) blacklist[address]=computer.uptime()+dt return true end
+function m.unlist(address) blacklist[address]=nil end
+function m.stop() event.ignore("modem_message",m.receive) rec=nil recu=nil end
+function m.getReceived() return rec end
+function m.getRecu() return recu end
+
 return m
