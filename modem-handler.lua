@@ -106,10 +106,6 @@ local function free_cached_msg()
     os.sleep(0)
 end
 
-local function empty_cache() --temporary solution
-    timer=event.timer(30,free_cached_msg,math.huge)
-end
-
 local function randID(x) 
     local id=tostring(math.random(1,100)) 
     if not x then 
@@ -261,7 +257,7 @@ function m.initialize(handler)
         f.addEvent("modem_message",m.receive)
     end
     print("modem_handler started")
-    empty_cache() --temporary solution
+    timer=event.timer(30,free_cached_msg,math.huge) --temporary solution
 end
 
 function m.getBlacklist() return blacklist end

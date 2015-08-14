@@ -15,10 +15,7 @@ local del_after_exec={}
 hooks={}
 local ext={}
 local task_timeout=30
---fehlende funktionen:
---f.save_tasks
---f.load_tasks
---f.backup_tasks
+
 --add coroutine possibility to pause() & continue()
 --add f.warning()
 --add return true/false to functions

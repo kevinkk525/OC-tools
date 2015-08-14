@@ -71,9 +71,10 @@ local function trans_buffer()
         end
         print("charging "..lowest)
         os.sleep(2)
-        if lowest>=20 then
+        if lowest>=5 then
             break
         end
+        print("done charging")
     end
     for i=1,#eSource_tmp do
         component.proxy(eSource_tmp[i]).setIOMode(1,"disabled")
@@ -173,14 +174,14 @@ function s.receive(username)
     trans[user[username]].setReceiveChannel("item",username,true)
     trans[user[username]].setIOMode(3,"pull")
     print(username.." activated pull")
-    return "receiving"
+    return true,"receiving"
 end
 
 function s.send(username)  
     if not user[username] then return false,"no such user" end
     trans[user[username]].setIOMode(3,"push")
     print(username.." activated push")
-    return "sending"
+    return true,"sending"
 end
 
 function s.close(username) --send direction can be left open?
@@ -188,7 +189,7 @@ function s.close(username) --send direction can be left open?
     trans[user[username]].setReceiveChannel("item",username,false)
     trans[user[username]].setIOMode(3,"push")--"disabled")
     print(username.." closed")
-    return "closed"
+    return true,"closed"
 end
 
 function s.registerUser(username)

@@ -1,5 +1,5 @@
 ------
-local version="0.3"
+local version="0.4"
 ------
 
 local component=require("component")
@@ -120,7 +120,7 @@ function x.count(input) --count given money table
         return "Parameter must be table!"
     else
         local erg=0
-        for i=1,#input,1 do
+        for i in pairs(input) do
             local mon=input[i]
             if type(mon)=="string" and input[mon]~=nil then
                 mon=input[mon]
