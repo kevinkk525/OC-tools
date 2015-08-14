@@ -191,7 +191,7 @@ function f.delete(x)
         elseif r[x].remove~=nil then
             r[x].remove()
         end 
-        --r[x].id="remove"
+        r[x].id="remove"
     end
     if type(x)=="number" then
         if r[r[x].id] then
@@ -201,7 +201,7 @@ function f.delete(x)
     else
         r[x]=nil
         for i=1,#r do
-            if r[i].id==x then
+            if r[i] and r[i].id==x then
                 table.remove(r,i)
             end
         end
