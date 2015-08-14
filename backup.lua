@@ -56,14 +56,14 @@ function s.initialize(handler)
     local file=io.open("/backup_path","r") 
     if file==nil then
         file=io.open("/backup_path","w")
-        while true do
+        while running do
             print("Enter storage location #"..tostring(#path+1)..", default for default, quit for quit")
             io.flush()
             local tmp2=io.read()
             if tmp2=="default" or "" then
                 path[#path+1]="/"
             elseif tmp2=="quit" or tmp2=="q" then
-                break
+                running=false
             else 
                 path[#path+1]=tmp2
             end
