@@ -56,6 +56,7 @@ function s.initialize(handler)
     local file=io.open("/backup_path","r") 
     if file==nil then
         file=io.open("/backup_path","w")
+        local running=true
         while running do
             print("Enter storage location #"..tostring(#path+1)..", default for default, quit for quit")
             io.flush()
