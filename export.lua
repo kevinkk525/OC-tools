@@ -554,6 +554,8 @@ function s.resetDeactivated() deactivated={} end
 
 function s.getTradeTable() return trade_table end
 
+function s.getDatabase() return database end
+
 function s.singleExport() return ex_single end  --only debug
 function s.halfExport() return ex_half end
 function s.stackExport() return ex_stack end
