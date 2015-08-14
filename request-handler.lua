@@ -329,6 +329,7 @@ function f.execute(short) --short: execution without dynamic sleep time
                         if hooks.m~=nil then
                             if hooks.m.note~=nil then
                                 hooks.m.note(r[#r].data[3])
+                                hooks.m.send({r[#r].data[3],r[#r].data[4],false,nil,r[#r].data[9] or r[#r].data[11]},true)
                             end
                         end
                     end
