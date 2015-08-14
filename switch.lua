@@ -170,7 +170,7 @@ function s.getUsers() return user end
 function s.getTransNumber() return #trans end
 
 function s.receive(username)
-    if not user[username] then return false,"no such user" end
+    if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
     trans[user[username]].setReceiveChannel("item",username,true)
     trans[user[username]].setIOMode(3,"pull")
     print(username.." activated pull")
@@ -178,14 +178,14 @@ function s.receive(username)
 end
 
 function s.send(username)  
-    if not user[username] then return false,"no such user" end
+    if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
     trans[user[username]].setIOMode(3,"push")
     print(username.." activated push")
     return true,"sending"
 end
 
 function s.close(username) --send direction can be left open?
-    if not user[username] then return false,"no such user" end
+    if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
     trans[user[username]].setReceiveChannel("item",username,false)
     trans[user[username]].setIOMode(3,"push")--"disabled")
     print(username.." closed")

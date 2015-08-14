@@ -24,8 +24,8 @@ if modem.isWireless() then
 end 
 
 local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,add_Data_position,priority
-    data[6]=data[6] or ""
-    local tmp=serialization.unserialize(data[6])
+    data[6]=data[6] or false
+    local tmp=serialization.unserialize(tstring(data[6]))
     if tmp~=nil then
         data[6]=tmp
     end

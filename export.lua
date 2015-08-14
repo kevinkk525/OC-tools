@@ -388,7 +388,6 @@ function s.export(user,items) --currently host has to take care of stack amounts
         local am,tm=math.modf(items[i][1]/item.maxSize)
         tm=items[i][1]-am*item.maxSize
         local hm,bm=math.modf(tm/(item.maxSize/2))
-        local split=false --split export into more tasks, currently not supported
         bm=tm-hm*(item.maxSize/2)
         local slot=database.indexOf(i)
         local cm=ex_single.setConfiguration(single_exp_side,database.address,slot)
