@@ -473,16 +473,16 @@ function s.addItem(items) --structure: hash={nbt,{s/b={{amount,prize},...},name=
         if trade_table[item] and item~="size" then
             trade_table[item]=items[item][2]
         elseif item~="size" then
-            items[item][1].size=nil
-            local me_item=me.getItemsInNetwork(items[item][1])
-            if me_item and me_item["n"]==1 then
+            items[item]["nbt"].size=nil
+            local me_item=me.getItemsInNetwork(items[item]["nbt"])
+            if me_item[1] and me_item["n"]==1 then
                 while database.get(database_entries) do
                     database.nextAddress()
                 end
                 if not database.get(1) then
-                    me.store(me_item,database.address)
+                    me.store(me_item[1],database.address)
                 end
-                me.store(me_item,database.address)
+                me.store(me_item[1],database.address)
                 if database.indexOf(item)>0 then
                     trade_table[item]=items[item][2]
                     trade_table.size=trade_table.size+1
