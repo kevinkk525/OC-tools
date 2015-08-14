@@ -131,7 +131,7 @@ function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of re
             tmp2[i]=tostring(data[i])
         end
         if type(data[i])~="nil" then
-            length=length+tmp2[i]:len()
+            length=length+tostring(tmp2[i]):len()
         end
     end
     tmp2[7]=f.getID()
