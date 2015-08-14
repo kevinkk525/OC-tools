@@ -6,8 +6,8 @@ local component=require("component")
 local computer=require("computer")
 local unicode=require("unicode")
 local s={} --functions
-files={}
-path={}
+local files={}
+local path={}
 local f
 
 --add browse backup, load backup & send backup, return backup_size, split backups
@@ -62,7 +62,7 @@ function s.initialize(handler)
             local tmp2=io.read()
             if tmp2=="default" or "" then
                 path[#path+1]="/"
-            elseif tmp2=="quit" then
+            elseif tmp2=="quit" or tmp2=="q" then
                 break
             else 
                 path[#path+1]=tmp2
