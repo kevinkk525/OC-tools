@@ -525,7 +525,6 @@ function s.initialize(handler)
     ex_stack={}
     ex_half={}
     d={}
-    database={}
     if hooks["backup"]==nil then
         b=f.addHook("backup","backup")
     end
