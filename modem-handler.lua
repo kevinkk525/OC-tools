@@ -238,7 +238,7 @@ function m.remoteRequest(target,com,data,port,timeout)
         os.sleep(0.1)
         timeout=timeout-0.1
         if f.getStatus(id)=="ready" then
-            local ret=f.getData()[6]
+            local ret=f.getData(nil,id)[6]
             f.remove(id)
             return ret
         end
