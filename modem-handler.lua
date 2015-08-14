@@ -30,13 +30,6 @@ local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,
         data[6]=tmp
     end
     tmp=nil
-    if type(data[6])=="string" then
-        if data6[6]=="true" then
-            data[6]=true
-        elseif data[6]=="false" then
-            data[6]=false
-        end
-    end
     data[1]=nil
     data[2]=nil
     local id=nil
@@ -134,7 +127,7 @@ function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of re
     for i=3,9,1 do
         if type(data[i])=="table" then
             tmp2[i]=serialization.serialize(data[i])
-        elseif type(data[i])=="string" or type(data[i])=="number" or type(data[i])=="boolean" then
+        elseif type(data[i])=="string" or type(data[i])=="number" then
             tmp2[i]=tostring(data[i])
         end
         if type(data[i])~="nil" then
