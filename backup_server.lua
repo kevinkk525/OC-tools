@@ -30,6 +30,26 @@ local function close()
     files={}
 end
 
+local registrationServer
+
+local function regServer()
+    local file=io.open("/lib/registrationServer","r")
+    if file then
+        registrationServer=file:read()
+        file:close()
+    else
+        print("Please enter registrationServer address or quit")
+        local inp=io.read()
+        if inp=="quit" then os.exit()
+        else 
+            registrationServer=inp
+            file=io.open("/lib/registrationServer","w")
+            file:write(registrationServer)
+            file:close()
+        end
+    end
+end
+
 -----------------------
 
 function s.initialize(handler)
@@ -59,6 +79,10 @@ function s.initialize(handler)
     end
     
     f=handler
+    f.registerFunction(s.backup,"backup")
+    f.registerFunction(s.getBackup,"getBackup")
+    regServer()
+    print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","Backup"}))
 end
 
 
