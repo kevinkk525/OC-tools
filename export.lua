@@ -85,7 +85,7 @@ local function initTradeTable() --structure: size=int,hash={s/b={{amount,prize},
     deactivated={}
     deactivated.size=0
     for item in pairs(trade_table) do 
-        if database.indexOf(item)<1 then
+        if item~="size" and database.indexOf(item)<1 then
             trade_table[item]=nil
             deactivated[item]=1
             trade_table.size=trade_table.size-1
@@ -471,9 +471,9 @@ end
 function s.addItem(items) --structure: hash={nbt,{s/b={{amount,prize},...},name=label?}}
     local rej={} --rejected because not in database and me
     for item in pairs(items) do
-        if trade_table[item] then
+        if trade_table[item] and item~="size" then
             trade_table[item]=items[item][2]
-        else
+        elseif item~="size" then
             items[item][1].size=nil
             local me_item=me.getItemsInNetwork(items[item][1])
             if me_item and me_item["n"]==1 then
@@ -511,9 +511,9 @@ end
 function s.updateTradeTable(tab)
     local rej={}
     for item in pairs(tab) do
-        if trade_table[item] then
+        if trade_table[item] and item~="size" then
             trade_table[item]=tab[item]
-        else
+        elseif item~="size" then
             rej[#rej+1]=item
         end
     end
@@ -549,11 +549,11 @@ function s.initialize(handler)
     f.registerFunction(s.getTradeTable,"getTradeTable")
 end
 
-function getDeactivated() return deactivated end
+function s.getDeactivated() return deactivated end
 
-function resetDeactivated() deactivated={} end
+function s.resetDeactivated() deactivated={} end
 
-function getTradeTable() return trade_table end
+function s.getTradeTable() return trade_table end
 
 function s.singleExport() return ex_single end  --only debug
 function s.halfExport() return ex_half end
