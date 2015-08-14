@@ -66,6 +66,7 @@ local function initDatabase()
     for i=1,#tmp do
         databases[i]=component.proxy(tmp[i])
     end  
+    database.address=databases[1]
 end
 
 local function log(str)
@@ -533,7 +534,7 @@ function s.initialize(handler)
     shopHost=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopHost"})
     if not shopHost then print("error, could not get a shopHost") end
     print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","ShopExport"}))
-    for i=1,database_entries do database.clear(i) end
+    initDatabase()
     initExport()
     initTradeTable()
     f.registerFunction(s.updateTradeTable,"updateTradeTable")
