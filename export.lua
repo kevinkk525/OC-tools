@@ -66,7 +66,7 @@ local function initDatabase()
     for i=1,#tmp do
         databases[i]=component.proxy(tmp[i])
     end  
-    database.address=databases[1]
+    database.address=databases[1].address
 end
 
 local function log(str)
@@ -529,9 +529,9 @@ function s.initialize(handler)
     if hooks["backup"]==nil then
         b=f.addHook("backup","backup")
     end
-    switch=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","Switch"})
+    switch=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","Switch"})[1]
     if not switch then print("error, could not get a switch") end
-    shopHost=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopHost"})
+    shopHost=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopHost"})[1]
     if not shopHost then print("error, could not get a shopHost") end
     print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","ShopExport"}))
     initDatabase()
