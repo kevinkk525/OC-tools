@@ -61,7 +61,7 @@ function s.initialize(handler)
             print("Enter storage location #"..tostring(#path+1)..", default for default, quit for quit")
             io.flush()
             local tmp2=io.read()
-            if tmp2=="default" or "" then
+            if tmp2=="default" then
                 path[#path+1]="/"
             elseif tmp2=="quit" or tmp2=="q" then
                 running=false
