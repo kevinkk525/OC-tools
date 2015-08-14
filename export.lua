@@ -174,7 +174,7 @@ local function sendItems()
                 break
             end
         end
-        if exporting=false then
+        if not exporting then
             break
         end
         timeout=timeout+1
@@ -214,7 +214,7 @@ end
 
 function database.computeHash(slot)
     for i=1,#databases do
-        if databases[i].address=database.address then
+        if databases[i].address==database.address then
             return databases[i].computeHash(slot)
         end
     end
@@ -239,7 +239,7 @@ end
 
 function database.get(slot)
     for i=1,#databases do
-        if databases[i].address=database.address then
+        if databases[i].address==database.address then
             return databases[i].get(slot)
         end
     end
@@ -248,7 +248,7 @@ end
 function database.clear(slot,address)
     address=addess or database.address
     for i=1,#databases do
-        if databases[i].address=address then
+        if databases[i].address==address then
             return databases[i].clear(slot)
         end
     end
