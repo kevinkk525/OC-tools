@@ -79,6 +79,8 @@ local function addBalance(user,balance)
 end
 
 local function initTradeTable() --structure: size=int,hash={s/b={{amount,prize},...},name=label?}
+    trade_table={}
+    trade_table.size=0
     --trade_table=f.remoteRequest(shopHost,"getTradeTable")  --deactivated for debugging
     deactivated={}
     deactivated.size=0
@@ -105,9 +107,9 @@ local function initExport()
     for i=1,#tmp do
         if component.proxy(tmp[i]).setConfiguration(single_exp_side,database.address,1) then
             ex_single=component.proxy(tmp[i])
-        elseif component.proxy(tmp[i]).setConfiguration(half_exp_side,item.address,1) then
+        elseif component.proxy(tmp[i]).setConfiguration(half_exp_side,database.address,1) then
             ex_half=component.proxy(tmp[i])
-        elseif component.proxy(tmp[i]).setConfiguration(stack_exp_side,item.address,1) then
+        elseif component.proxy(tmp[i]).setConfiguration(stack_exp_side,database.address,1) then
             ex_stack=component.proxy(tmp[i])
         end
     end
@@ -535,8 +537,8 @@ function s.initialize(handler)
     if not shopHost then print("error, could not get a shopHost") end
     print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","ShopExport"}))
     initDatabase()
-    initExport()
     initTradeTable()
+    initExport()
     f.registerFunction(s.updateTradeTable,"updateTradeTable")
     f.registerFunction(s.exportTo,"exportTo")
     f.registerFunction(s.importFrom,"importFrom")
