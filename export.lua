@@ -98,24 +98,47 @@ end
 
 local function initExport()
     local tmp={}
-    local item=me.getItemsInNetwork()[1]
-    if not me.store(item,database.address,1) then
-        log("error, could not store in database")
-        os.exit()
-    end
     for a,b in component.list("me_exportbus") do tmp[#tmp+1]=a end
     for i=1,#tmp do
-        if component.proxy(tmp[i]).setConfiguration(single_exp_side,database.address,1) then
+        if component.proxy(tmp[i]).setConfiguration(single_exp_side,database.address,2) then
             ex_single=component.proxy(tmp[i])
-        elseif component.proxy(tmp[i]).setConfiguration(half_exp_side,database.address,1) then
+        elseif component.proxy(tmp[i]).setConfiguration(half_exp_side,database.address,2) then
             ex_half=component.proxy(tmp[i])
-        elseif component.proxy(tmp[i]).setConfiguration(stack_exp_side,database.address,1) then
+        elseif component.proxy(tmp[i]).setConfiguration(stack_exp_side,database.address,2) then
             ex_stack=component.proxy(tmp[i])
         end
     end
     if not ex_single or not ex_half or not ex_stack then
         log("error, could not proxy export buses")
         os.exit()
+    end
+end
+
+local function initStoreFunction()
+    local me_store=me.store
+    me.store=function(item,slot,address) 
+        if slot>1 and not address then 
+            while true do 
+                if database.get(database_entries) then
+                    database.nextAddress()
+                else
+                    break
+                end
+            end
+        elseif slot==1 and not address then
+            database.clear(1)
+        end
+        if not database.get(1) and not address then
+            me_store(item,database.address,1)
+        end
+        if not address and slot~=1 then
+            me_store(item,database.address,slot)
+            database.clear(1)
+        elseif address then
+            database.setAddress(address)
+            database.clear(slot)
+            me_store(item,database.address,slot)
+        end
     end
 end
 
@@ -128,27 +151,21 @@ local function getItems()
     trans.setIOMode(chest_dim_side,"push")
     os.sleep(1)
     trans.setIOMode(chest_dim_side,"disabled")
-    for i=1,chest_size do
-        local item=inv.getStackInSlot(chest_side,i)
-        if item then
-            local size=item.size
-            local me_item=me.getItemsInNetwork(item)
-            if me_item["n"]>1 then
-                log("item not unique, label: "..item.label)
-            elseif me_item["n"]==0 then
-                log("item not in network, label: "..item.label)
-            else
-                me.store(item,database.address,1)
-                local hash=database.computeHash(1)
-                if not ret[hash] then
-                    ret[hash]=item
-                    ret[hash].size=size
-                else
-                    ret[hash].size=ret[hash].size+size
-                end
-            end 
+    local items=me.getItemsInNetwork()
+    ret.size=items.n
+    for i=1,#items do
+        me.store(items[i],1)
+        local hash=database.computeHash(1)
+        database.clear(1)
+        if database.indexOf(hash)<1 then
+            local add=database.address
+            me.store(items[i],1)
+            me.store(items[i])
+            database.clear(1,add)
         end
+        ret[hash]=items[i]
     end
+    items=nil
     return ret
 end
 
@@ -158,49 +175,40 @@ local function calculateBalance(items,price)
         if not price(item) then
             log("item not found in price table, not possible for export")
         else
-            balance=balance+(price[item][2]*(item.size/price[item][1]))
+            local percent=item.size/price[item][1]
+            if percent>1 then percent=1 end
+            balance=balance+(price[item][2]*percent)
         end
     end
     return balance
 end
 
-local function sendItems()
+local function sendItems(timeout)
+    timeout=timeout or transmission_timeout
+    local count=0
     while true do
-        if timeout==transmission_timeout then
+        if count==timeout then
             return false,"Error during transmission of items"
         end
-        os.sleep(1)
-        local exporting=false
-        for chi=1,inv.getInventorySize(chest_side) do
-            if inv.getStackInSlot(chest_side,chi) then
-                exporting=true
-                break
-            end
-        end
-        if not exporting then
+        os.sleep(0.1)
+        if me.getItemsInNetwork()["n"]==0 then
             break
         end
-        timeout=timeout+1
+        count=count+1
     end
     return true
 end
 
-local function me_import()
+local function me_import(timeout)
+    timeout=timeout or 4
     redstone.setOutput(redstone_side,15)
-    while true do
-        os.sleep(0.5)
-        local running=false
-        for i=1,chest_size do
-            if inv.getStackInSlot(chest_side,i) then
-                running=true
-                break
-            end
-        end
-        if not running then
-            break
-        end
+    local ret=false
+    if sendItems(timeout) then
+        ret=true
+        break
     end
     redstone.setOutput(redstone_side,0)
+    return ret
 end
     
 ------------------------------
@@ -223,8 +231,8 @@ function database.computeHash(slot)
     end
 end
 
-function database.setAdress(add)
-    database.addres=add
+function database.setAddress(add)
+    database.address=add
 end
 
 function database.nextAddress()
@@ -259,11 +267,17 @@ end
 
 ------------------------------
 
-   
+function s.changeSwitch(user,mode)
+    if not f.remoteRequest(switch,mode,user) then
+        log("error, could not change the switch for user "..user)
+        return false
+    end
+    return true
+end
 
 function s.import(user,items)
     if not trans.setReceiveChannel("item",user,true) then
-        return "wrong user, channel not available"
+        return false,"wrong user, channel not available"
     end
     trans.setIOMode(chest_dim_side,"push")
     if not s.changeSwitch(user,"receive") then
@@ -275,31 +289,55 @@ function s.import(user,items)
     local slots=0
     local timeout=0
     local try=0
+    local part=1
+    local amount={}
+    local err=false
     while true do
-        os.sleep(1)
-        local slotn
-        for i=1,chest_size do
-            if not inv.getStackInSlot(chest_side,i) then
-                slotn=i
-                break
+        os.sleep(0.1)
+        if part==1 then
+            local slotn=me.getItemsInNetwork()["n"]
+            if slotn~=slots then
+                slots=slotn
+                try=0
+            else
+                try=try+1
+                if try==6 then
+                    part=2
+                    for i=1,me.getItemsInNetwork()["n"] do
+                        amount[i]=me.getItemsInNetwork()[i]
+                    end
+                    try=0
+                end
             end
-        end
-        if slotn~=slots then
-            slots=slotn
-            try=0
-        else
-            try=try+1
-            if try==3 then
-                break
+        elseif part==2 then
+            if #amount==me.getItemsInNetwork()["n"] then
+                local amount2={}
+                for i=1,me.getItemsInNetwork()["n"] do
+                    amount2[i]=me.getItemsInNetwork()[i]
+                    if amount2[i]~=amount[i] then
+                        part=1
+                        try=0
+                    end
+                end
+                if part==2 then
+                    try=try+1
+                end
+                if try==7 and part==2 then
+                    break
+                end
             end
-        end
+        end                
         timeout=timeout+1
         if timeout>=receiving_timeout then
+            err=true
             break
         end
     end
     trans.setIOMode(chest_dim_side,"disabled")
     trans.setReceiveChannel("item",user,false)
+    if err then
+        log("timeout during import")
+    end
     if not s.changeSwitch(user,"close") then
         log("error closing the switch")
         return false,"switch error"
@@ -315,13 +353,15 @@ function s.import(user,items)
         if items.price>imported_money then
             return false,"not correct money amount"
         elseif items.price<imported_money then
-            addBalance(user,imported_money-items.price)
+            if not addBalance(user,imported_money-items.price) then
+                log("error during refunding of overpaid export")
+            end
         end
     end
     return true,imported
 end
 
-function s.importFrom(user,items) --items: hash={amount},price
+function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
     local money=false
     local success,imported=s.import(user,items)
     if not success then
@@ -334,15 +374,17 @@ function s.importFrom(user,items) --items: hash={amount},price
             local balance=0
             for item in pairs(imported) do
                 if items[item] then
-                    balance=balance+(items[item][2]*(item.size/items[item][1]))
+                    local percent=item.size/items[item].size
+                    if percent>1 then percent=1 end
+                    balance=balance+(items[item][1]*percent)
                 end
             end
             if not addBalance(user,balance) then
-                log("Error adding balance after faild import and sending back")
+                log("Error adding balance after faild import and failed sending back")
                 me_import()
                 trans.setIOMode(chest_dim_side,"disabled")
                 trans.setSendChannel(item,user,false)
-                return "error adding balance after failed import and sending back"
+                return "error adding balance after failed import and failed sending back"
             end
         end
         trans.setIOMode(chest_dim_side,"disabled")
@@ -351,18 +393,9 @@ function s.importFrom(user,items) --items: hash={amount},price
     else
         return true,"imported successfully"
     end
-end  
-    
-
-function s.changeSwitch(user,mode)
-    if not f.remoteRequest(switch,mode,user) then
-        log("error, could not change the switch")
-        return false
-    end
-    return true
 end
 
-function s.exportTo(user,items) --add time in errorlog; items structure: hash={amount,price}
+function s.exportTo(user,items) --add time in errorlog; items structure: hash={size=amount,[1]=price}
     local success,err=s.export(user,items)
     if success then
         return true,"sent"
@@ -384,8 +417,13 @@ function s.export(user,items) --currently host has to take care of stack amounts
         return "wrong user, channel not available"
     end
     for i in pairs(items) do
-        local item=database.get(database.indexOf(i))
-        local am,tm=math.modf(items[i][1]/item.maxSize)
+        local item=database.indexOf(i)
+        if item<1 then
+            return "item not found in database"
+        else
+            item=database.get(item)
+        end        
+        local am,tm=math.modf(items[i].size/item.maxSize)
         tm=items[i][1]-am*item.maxSize
         local hm,bm=math.modf(tm/(item.maxSize/2))
         bm=tm-hm*(item.maxSize/2)
@@ -398,48 +436,32 @@ function s.export(user,items) --currently host has to take care of stack amounts
             return false,"configuration failed"
         else
             for j=1,am do
-                if not ex_stack.exportIntoSlot(stack_exp_side,j) then
+                if not ex_stack.exportIntoSlot(stack_exp_side,1) then
                     log("Error during stack-export")
                     return false,"Error during stack-export"
                 end   
             end
-            local j=0
-            local offseth=1
             for i=1,hm do
-                j=j+1
-                if j>2 then --because 2 half-stacks have to be exported to fill one stack
-                    j=1
-                    offseth=offseth+1
-                end
-                if not ex_half.exportIntoSlot(half_exp_side,am+offseth) then
+                if not ex_half.exportIntoSlot(half_exp_side,1) then
                     log("Error during half-export")
                     return false,"Error during half-export"
                 end
             end            
-            local j=0
-            local offset=1
-            for i=1,bm do 
-                j=j+1
-                if j>item.maxSize then
-                    j=1
-                    offset=offset+1
-                end
-                if not ex_single.exportIntoSlot(single_exp_side,am+offset+offseth) then
+            for i=1,bm do
+                if not ex_single.exportIntoSlot(single_exp_side,1) then
                     log("Error during single-export")
                     return false,"Error during single-export"
                 end
             end
         end
     end
-    --recheck exported amount
     local exported=0
-    for ch=1,chest_size do
-        if inv.getStackInSlot(chest_side,ch) then
-            exported=exported+inv.getStackInSlot(chest_side,ch).size
-        end
+    local exported_i=me.getItemsInNetwork()
+    for i=1,exported_i["n"] do
+        exported=exported+exported_i[i].size
     end
     for item in pairs(items) do
-        exported=exported-item[1]
+        exported=exported-item.size
     end
     if exported~=0 then
         log("Not every item was exported, exported-target="..exported)
@@ -467,28 +489,17 @@ function s.export(user,items) --currently host has to take care of stack amounts
     return true,"items exported"
 end
 
-function s.addItem(items) --structure: hash={nbt,{s/b={{amount,prize},...},name=label?}}
-    local rej={} --rejected because not in database and me
+function s.addItem(items) --structure: hash={nbt,{s/b={{amount,prize},...},name=label?}}  --how to add items? into database? 2nd ME?
+    local rej={} --rejected because not in database --and me
     for item in pairs(items) do
         if trade_table[item] and item~="size" then
             trade_table[item]=items[item]
         elseif item~="size" then
-            items[item]["nbt"].size=nil
-            local me_item=me.getItemsInNetwork(items[item]["nbt"])
-            if me_item[1] and me_item["n"]==1 then
-                while database.get(database_entries) do
-                    database.nextAddress()
-                end
-                if not database.get(1) then
-                    me.store(me_item[1],database.address)
-                end
-                me.store(me_item[1],database.address)
-                if database.indexOf(item)>0 then
-                    trade_table[item]=items[item]
-                    trade_table.size=trade_table.size+1
-                else
-                    rej[#rej+1]=item
-                end
+            if database.indexOf(item)>0 then
+                trade_table[item]=items[item]
+                trade_table.size=trade_table.size+1
+            else
+                rej[#rej+1]=item
             end
         end
     end
@@ -501,7 +512,7 @@ function s.removeItem(items)
         if trade_table[item] then
             trade_table[item]=nil
             trade_table.size=trade_table.size-1
-            database.clear(database.indexOf(item))
+            --database.clear(database.indexOf(item)) --leave all items in database
         end
     end
     return true
@@ -538,6 +549,7 @@ function s.initialize(handler)
     initDatabase()
     initTradeTable()
     initExport()
+    initStoreFunction()
     f.registerFunction(s.updateTradeTable,"updateTradeTable")
     f.registerFunction(s.exportTo,"exportTo")
     f.registerFunction(s.importFrom,"importFrom")
