@@ -343,7 +343,7 @@ function s.import(user,items)
     end
     local imported=getItems()
     for item in pairs(imported) do
-        if not items[item] or not exhange.getMoney()[imported[item].label] or imported[item].size~=items[item].size then
+        if not items[item] or not exchange.getMoney()[imported[item].label] or imported[item].size~=items[item].size then
             return false,"different items/amounts"
         end
     end
