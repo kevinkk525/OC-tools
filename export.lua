@@ -586,6 +586,6 @@ function s.getDatabase() return database end
 function s.singleExport() return ex_single end  --only debug
 function s.halfExport() return ex_half end
 function s.stackExport() return ex_stack end
-function s.quarter-export() return quarter-export end
+function s.quarter-export() return ex_quarter end
 
 return s
