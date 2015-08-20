@@ -175,9 +175,9 @@ local function calculateBalance(items,price)
         if not price[item] then
             log("item not found in price table, not possible for export")
         else
-            local percent=item.size/price[item][1]
+            local percent=item.size/price[item].size
             if percent>1 then percent=1 end
-            balance=balance+(price[item][2]*percent)
+            balance=balance+(price[item][1]*percent)
         end
     end
     return balance
@@ -201,12 +201,14 @@ end
 
 local function me_import(timeout)
     timeout=timeout or 4
+    trans.setSendChannel("item","AE_Import",true)
     redstone.setOutput(redstone_side,15)
     local ret=false
     if sendItems(timeout) then
         ret=true
     end
     redstone.setOutput(redstone_side,0)
+    trans.setSendChannel("item","AE_Import",true)
     return ret
 end
     
@@ -395,7 +397,8 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
 end
 
 function s.exportTo(user,items) --add time in errorlog; items structure: hash={size=amount,[1]=price}
-    local success,err=s.export(user,items)
+    local success,err=s.export(user,items),
+    print(err)
     if success then
         return true,"sent"
     else
