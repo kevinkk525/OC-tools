@@ -423,7 +423,7 @@ function s.export(user,items) --currently host has to take care of stack amounts
             item=database.get(item)
         end        
         local am,tm=math.modf(items[i].size/item.maxSize)
-        tm=items[i][1]-am*item.maxSize
+        tm=items[i].size-am*item.maxSize
         local hm,bm=math.modf(tm/(item.maxSize/2))
         bm=tm-hm*(item.maxSize/2)
         local slot=database.indexOf(i)
@@ -431,7 +431,7 @@ function s.export(user,items) --currently host has to take care of stack amounts
         local dm=ex_stack.setConfiguration(stack_exp_side,database.address,slot)
         local em=ex_stack.setConfiguration(half_exp_side,database.address,slot)        
         if not cm or not dm or not em then
-            log("Configuration of exportbus failed!"..cm..dm..em)
+            log("Configuration of exportbus failed!"..tostring(cm)..tostring(dm)..tostring(em)
             return false,"configuration failed"
         else
             for j=1,am do
@@ -488,7 +488,7 @@ function s.export(user,items) --currently host has to take care of stack amounts
     return true,"items exported"
 end
 
-function s.addItem(items) --structure: hash={nbt,{s/b={{amount,prize},...},name=label?}}  --how to add items? into database? 2nd ME?
+function s.addItem(items) --structure: hash={[1]=nbt,{s/b={{amount,prize},...},name=label?}}  --how to add items? into database? 2nd ME?
     local rej={} --rejected because not in database --and me
     for item in pairs(items) do
         if trade_table[item] and item~="size" then
