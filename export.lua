@@ -460,7 +460,7 @@ function s.export(user,items) --currently host has to take care of stack amounts
         exported=exported+exported_i[i].size
     end
     for item in pairs(items) do
-        exported=exported-item.size
+        exported=exported-items[item].size
     end
     if exported~=0 then
         log("Not every item was exported, exported-target="..exported)
