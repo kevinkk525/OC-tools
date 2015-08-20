@@ -121,7 +121,7 @@ function s.initTessIO()
     for i=1,#trans_tmp do
         trans[#trans+1]=component.proxy(trans_tmp[i])
         if trans[i].getReceiveChannels("item")[1] then
-            user[i]=trans[i].getSendChannels("item")[1]
+            user[i]=trans[i].getReceiveChannels("item")[1]
             user[user[i]]=i
         end
     end
