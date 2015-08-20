@@ -120,7 +120,7 @@ function s.initTessIO()
     print("found #"..#eBuffer_tmp.." Capacitors and #"..#eSource_tmp.." Creative Capacitors")
     for i=1,#trans_tmp do
         trans[#trans+1]=component.proxy(trans_tmp[i])
-        if trans[i].getSendChannels("item")[1] then
+        if trans[i].getReceiveChannels("item")[1] then
             user[i]=trans[i].getSendChannels("item")[1]
             user[user[i]]=i
         end
@@ -171,7 +171,7 @@ function s.getTransNumber() return #trans end
 
 function s.receive(username)
     if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
-    trans[user[username]].setReceiveChannel("item",username,true)
+    trans[user[username]].setSendChannel("item",username,true)
     trans[user[username]].setIOMode(3,"pull")
     print(username.." activated pull")
     return true,"receiving"
@@ -179,6 +179,7 @@ end
 
 function s.send(username)  
     if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
+    trans[user[username]].setReceiveChannel("item",username,true)
     trans[user[username]].setIOMode(3,"push")
     print(username.." activated push")
     return true,"sending"
@@ -186,7 +187,7 @@ end
 
 function s.close(username) --send direction can be left open?
     if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
-    trans[user[username]].setReceiveChannel("item",username,false)
+    trans[user[username]].setSendChannel("item",username,false)
     trans[user[username]].setIOMode(3,"push")--"disabled")
     print(username.." closed")
     return true,"closed"
