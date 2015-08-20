@@ -119,7 +119,8 @@ end
 
 local function initStoreFunction()
     local me_store=me.store
-    me.store=function(item,slot,address) 
+    me.store=function(item,slot,address)
+        slot=slot or -1
         if slot>1 and not address then 
             while true do 
                 if database.get(database_entries) then
@@ -134,7 +135,7 @@ local function initStoreFunction()
         if not database.get(1) and not address then
             me_store(item,database.address,1)
         end
-        if not address and slot~=1 then
+        if not address and slot~=1 and slot~=-1 then
             me_store(item,database.address,slot)
             database.clear(1)
         elseif address then
