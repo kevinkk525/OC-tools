@@ -172,7 +172,7 @@ end
 local function calculateBalance(items,price)
     local balance=0
     for item in pairs(items) do
-        if not price(item) then
+        if not price[item] then
             log("item not found in price table, not possible for export")
         else
             local percent=item.size/price[item][1]
@@ -429,9 +429,9 @@ function s.export(user,items) --currently host has to take care of stack amounts
         local slot=database.indexOf(i)
         local cm=ex_single.setConfiguration(single_exp_side,database.address,slot)
         local dm=ex_stack.setConfiguration(stack_exp_side,database.address,slot)
-        local em=ex_stack.setConfiguration(half_exp_side,database.address,slot)        
+        local em=ex_half.setConfiguration(half_exp_side,database.address,slot)        
         if not cm or not dm or not em then
-            log("Configuration of exportbus failed!"..tostring(cm)..tostring(dm)..tostring(em)
+            log("Configuration of exportbus failed!"..tostring(cm)..tostring(dm)..tostring(em))
             return false,"configuration failed"
         else
             for j=1,am do
