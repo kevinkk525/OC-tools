@@ -205,7 +205,6 @@ local function me_import(timeout)
     local ret=false
     if sendItems(timeout) then
         ret=true
-        break
     end
     redstone.setOutput(redstone_side,0)
     return ret
