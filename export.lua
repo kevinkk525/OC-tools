@@ -432,7 +432,7 @@ function s.export(user,items) --currently host has to take care of stack amounts
         local dm=ex_stack.setConfiguration(stack_exp_side,database.address,slot)
         local em=ex_stack.setConfiguration(half_exp_side,database.address,slot)        
         if not cm or not dm or not em then
-            log("Configuration of exportbus failed!")
+            log("Configuration of exportbus failed!"..cm..dm..em)
             return false,"configuration failed"
         else
             for j=1,am do
@@ -504,7 +504,7 @@ function s.addItem(items) --structure: hash={nbt,{s/b={{amount,prize},...},name=
         end
     end
     deactivated=rej
-    return true
+    return rej
 end
 
 function s.removeItem(items)
@@ -527,7 +527,7 @@ function s.updateTradeTable(tab)
             rej[#rej+1]=item
         end
     end
-    return true
+    return rej
 end
 
 function s.initialize(handler)
