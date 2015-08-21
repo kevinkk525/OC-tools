@@ -33,7 +33,7 @@ for i=1,#args do
     end    
 end
 if not only then
-    print("downloading GUI-API")
+    print("\ndownloading GUI-API")
     os.execute("wget -f https://github.com/kevinkk525/OC-GUI-API/raw/master/shapes_default.lua /lib/shapes_default.lua")
     os.execute("wget -f https://github.com/kevinkk525/OC-GUI-API/raw/master/GUI.lua /lib/GUI.lua")
     os.execute("wget -f https://github.com/kevinkk525/OC-GUI-API/raw/master/term_mod.lua /lib/term_mod.lua")

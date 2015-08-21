@@ -1,6 +1,8 @@
 ------------------------------
 local version="1.6b"
 ------------------------------
+local request_timeout=10
+------------------------------
 local serialization=require("serialization")
 local component=require("component")
 local modem=component.modem
@@ -235,7 +237,7 @@ function m.remoteRequest(target,com,data,port,timeout,try)
     local id=f.addTask(function() hooks.m.send({target,port,data,com}) f.pause(function() end) end)
     f.moveTo(nil,id)
     f.execute()
-    timeout=timeout or 20
+    timeout=timeout or request_timeout
     while true do
         os.sleep(0.1)
         timeout=timeout-0.1
@@ -246,9 +248,9 @@ function m.remoteRequest(target,com,data,port,timeout,try)
         end
         if timeout<=0 then
             f.remove(id)
-            if not try then
-                print("debug modem_handler: try 1")
-                return m.remoteRequest(target,com,data,port,timeout,1)
+            if not try or try<2 then
+                print("debug modem_handler: try 2")
+                return m.remoteRequest(target,com,data,port,timeout,2)
             end
             return false,"timed out"
         end
