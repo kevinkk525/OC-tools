@@ -202,8 +202,9 @@ local function sendItems(timeout)
             break
         else
             local new=0
-            for i=1,me.getItemsInNetwork()["n"] do
-                new=new+me.getItemsInNetwork()[i].size
+            local items=me.getItemsInNetwork()
+            for i=1,items["n"] do
+                new=new+items[i].size
             end
             if change==new then
                 count=count+sleep+0.1 --calculation offset
