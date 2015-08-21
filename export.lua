@@ -175,6 +175,8 @@ end
 
 local function calculateBalance(items,price)
     local balance=0
+    print(serialization.serialize(items))
+    print(serialization.serialize(price))
     for item in pairs(items) do
         if not price[item] then
             log("item not found in price table, not possible for export")
