@@ -9,8 +9,8 @@ local chest_side=4
 local shopHost
 local redstone_side=5
 local chest_dim_side=2
-local transmission_timeout=20
-local receiving_timeout=20
+local transmission_timeout=4
+local receiving_timeout=4
 local hard_currency=true
 ------
 
@@ -184,22 +184,34 @@ local function calculateBalance(items,price)
             balance=balance+(price[item][1]*percent)
         end
     end
-    balance=math.floor(balance*100+0.5)
+    balance=math.floor(balance*100+0.5)/100
     return balance
 end
 
 local function sendItems(timeout)
     timeout=timeout or transmission_timeout
+    local sleep=0.1
     local count=0
+    local change=0
     while true do
         if count==timeout then
             return false,"Error during transmission of items"
         end
-        os.sleep(0.1)
+        os.sleep(sleep)
         if me.getItemsInNetwork()["n"]==0 then
             break
+        else
+            local new=0
+            for i=1,me.getItemsInNetwork()["n"] do
+                new=new+me.getItemsInNetwork()[i].size
+            end
+            if change==new then
+                count=count+sleep+0.1 --calculation offset
+            else
+                change=new
+                count=0
+            end
         end
-        count=count+1
     end
     return true
 end
@@ -213,7 +225,7 @@ local function me_import(timeout)
         ret=true
     end
     redstone.setOutput(redstone_side,0)
-    trans.setSendChannel("item","AE_Import",true)
+    trans.setSendChannel("item","AE_Import",false)
     return ret
 end
     
