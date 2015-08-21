@@ -175,19 +175,16 @@ end
 
 local function calculateBalance(items,price)
     local balance=0
-    print(serialization.serialize(items))
-    print(serialization.serialize(price))
     for item in pairs(items) do
         if not price[item] then
             log("item not found in price table, not possible for export")
         else
-            local test=items[item].size
-            local test2=price[item].size
             local percent=items[item].size/price[item].size
             if percent>1 then percent=1 end
             balance=balance+(price[item][1]*percent)
         end
     end
+    balance=math.floor(balance*100+0.5)
     return balance
 end
 
@@ -412,9 +409,15 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
     else
         local balance=calculateBalance(getItems(),items)
         if addBalance(user,amount) then
+            trans.setSendChannel("item",user,false)
+            trans.setIOMode(chest_dim_side,"disabled")
+            me_import()
             export_log("Error during transmission, refunded "..balance)
             return "Error during transmission, refunded "..balance
         else
+            trans.setSendChannel("item",user,false)
+            trans.setIOMode(chest_dim_side,"disabled")
+            me_import()
             export_log("Error during transmission and refunding of "..balance)
             return "Error during transmission and refunding, contact your shop owner immediately!"
         end
