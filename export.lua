@@ -207,7 +207,7 @@ local function receiveItems(timeout,size)
         for i=1,items["n"] do
             new=new+items[i].size
         end
-        if new==size then
+        if (size==0 and new==size) or (size>0 and new>=size) then
             return true
         elseif change==new then
             count=count+sleep+0.1 --calculation offset
@@ -302,14 +302,14 @@ end
 
 function s.import(user,items)
     if not trans.setReceiveChannel("item",user,true) then
-        return false,"wrong user, channel not available"
+        return false,nil,"wrong user, channel not available"
     end
     trans.setIOMode(chest_dim_side,"push")
     if not s.changeSwitch(user,"receive") then
         log("error during activating switch")
         trans.setIOMode(chest_dim_side,"disabled")
         trans.setReceiveChannel("item",user,false)
-        return false,"switch error"
+        return false,nil,"switch error"
     end
     local slots=0
     local timeout=0
@@ -329,20 +329,21 @@ function s.import(user,items)
     end
     if not s.changeSwitch(user,"close") then
         log("error closing the switch")
-        return false,"switch error"
+        return false,nil,"switch error"
     end
     local imported=getItems()
     for item in pairs(imported) do
         if item~="size" then
             if not (items[item] or exchange.getMoney()[imported[item].label]) or imported[item].size~=items[item].size then
-                return false,"different items/amounts"
+                log("different items/amounts")
+                return false,imported,"different items/amounts"
             end
         end
     end
-    if items[1] and hard_currency then
+    if items.price and hard_currency then
         local imported_money=exchange.count(imported)
         if items.price>imported_money then
-            return false,"not correct money amount"
+            return false,imported,"not correct money amount"
         elseif items.price<imported_money then
             if not addBalance(user,imported_money-items.price) then
                 log("error during refunding of overpaid export")
@@ -354,22 +355,39 @@ end
 
 function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
     local money=false
-    local success,imported=s.import(user,items)
+    local success,imported,err=s.import(user,items)
     if not success then
+        imported=imported or getItems()
         if not s.changeSwitch(user,"send") then
             log("error during try of sending back imported items")
         end
-        trans.setIOMode(chest_dim_side,"push")
-        trans.setReceiveChannel("item",user,true)
-        if not receiveItems() then
+        trans.setIOMode(chest_dim_side,"pull")
+        trans.setSendChannel("item",user,true)
+        if not sendItems(4,0) then
+            trans.setIOMode(chest_dim_side,"push")
+            trans.setSendChannel("item",user,false)
             local balance=calculateBalance(getItems(),items)
             if not addBalance(user,balance) then
-                log("Error adding balance after faild import and failed sending back")
+                log("Error adding balance "..balance.." after failed import and failed sending back")
                 me_import()
                 trans.setIOMode(chest_dim_side,"disabled")
                 trans.setReceiveChannel("item",user,false)
+                if not s.changeSwitch(user,"close") then
+                    log("error closing switch")
+                end
                 return "error adding balance after failed import and failed sending back"
             end
+            if not s.changeSwitch(user,"send") then
+                log("error closing switch")
+            end
+            me_import()
+            trans.setIOMode(chest_dim_side,"disabled")
+            trans.setReceiveChannel("item",user,false)
+            log("failed sending back, refunded "..balance)
+            return "failed sending back, refunded "..balance
+        end
+        if not s.changeSwitch(user,"send") then
+            log("error closing switch")
         end
         trans.setIOMode(chest_dim_side,"disabled")
         trans.setSendChannel("item",user,false)
@@ -405,7 +423,6 @@ end
 
 function s.export(user,items) --currently host has to take care of stack amounts<chest_size
     if not trans.setSendChannel("item",user,true) then
-            me_import()
         return "wrong user, channel not available"
     end
     for i in pairs(items) do
@@ -476,13 +493,11 @@ function s.export(user,items) --currently host has to take care of stack amounts
     if not sendItems() then
         trans.setSendChannel("item",user,false)
         trans.setIOMode(chest_dim_side,"disabled")
-        me_import()
         return false,"error during transmission"
     end
     if not s.changeSwitch(user,"close") then
         trans.setSendChannel("item",user,false)
         trans.setIOMode(chest_dim_side,"disabled")
-        me_import()
         return false,"Error closing the switch"
     end
     trans.setSendChannel("item",user,false)
