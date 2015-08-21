@@ -189,29 +189,32 @@ local function calculateBalance(items,price)
 end
 
 local function sendItems(timeout)
+    receiveItems(timeout,0)
+end
+
+local function receiveItems(timeout,size)
+    size=size or 0
     timeout=timeout or transmission_timeout
     local sleep=0.1
     local count=0
     local change=0
     while true do
-        if count==timeout then
+        if count>=timeout then
             return false,"Error during transmission of items"
         end
         os.sleep(sleep)
-        if me.getItemsInNetwork()["n"]==0 then
+        local new=0
+        local items=me.getItemsInNetwork()
+        for i=1,items["n"] do
+            new=new+items[i].size
+        end
+        if new==size then
             break
+        elseif change==new then
+            count=count+sleep+0.1 --calculation offset
         else
-            local new=0
-            local items=me.getItemsInNetwork()
-            for i=1,items["n"] do
-                new=new+items[i].size
-            end
-            if change==new then
-                count=count+sleep+0.1 --calculation offset
-            else
-                change=new
-                count=0
-            end
+            change=new
+            count=0
         end
     end
     return true
@@ -309,8 +312,13 @@ function s.import(user,items)
     local timeout=0
     local try=0
     local part=1
-    local amount={}
-    local err=sendItems(7)
+    local amount=0
+    for i in pairs(items) do
+        if i~="size" then
+            amount=amount+items[i].size
+        end
+    end
+    local err=receiveItems(7,amount)
     trans.setIOMode(chest_dim_side,"disabled")
     trans.setReceiveChannel("item",user,false)
     if not err then
@@ -350,7 +358,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
         end
         trans.setIOMode(chest_dim_side,"push")
         trans.setReceiveChannel("item",user,true)
-        if not sendItems() then
+        if not receiveItems() then
             local balance=calculateBalance(getItems(),items)
             if not addBalance(user,balance) then
                 log("Error adding balance after faild import and failed sending back")
