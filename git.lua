@@ -21,14 +21,15 @@ print("downloading content")
 local only=false
 for i=1,#args do
     local path="/lib/"
-    if args[i]=="-o" then
-        only=true
-    end
     if args[i]=="git.lua" then
         path="/"
     end
     local url="https://github.com/kevinkk525/OC-tools/raw/master/"..args[i]
-    local command="wget -f "..url.." "..path..args[i]
+    if args[i]=="-o" then
+        only=true
+    else
+        local command="wget -f "..url.." "..path..args[i]
+    end
     os.execute(command)
 end
 if not only then
