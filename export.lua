@@ -173,7 +173,7 @@ local function getItems()
     return ret
 end
 
-function calculateBalance(items,price)
+local function calculateBalance(items,price)
     local balance=0
     for item in pairs(items) do
         if item~="size" and not price[item] then
@@ -187,6 +187,9 @@ function calculateBalance(items,price)
     balance=math.floor(balance*100+0.5)/100
     return balance
 end
+
+function s.calculateBalance(items,price) return calculateBalance(items,price) end
+function s.getItems() return getItems() end
 
 local function receiveItems(timeout,size)
     size=size or 0
