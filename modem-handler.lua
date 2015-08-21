@@ -230,7 +230,7 @@ function m.sendCommand(target,com,data,port)
     return true
 end
 
-function m.remoteRequest(target,com,data,port,timeout)
+function m.remoteRequest(target,com,data,port,timeout,try)
     port=port or 801
     local id=f.addTask(function() hooks.m.send({target,port,data,com}) f.pause(function() end) end)
     f.moveTo(nil,id)
@@ -246,6 +246,10 @@ function m.remoteRequest(target,com,data,port,timeout)
         end
         if timeout<=0 then
             f.remove(id)
+            if not try then
+                print("debug modem_handler: try 1")
+                return m.remoteRequest(target,com,data,port,timeout,1)
+            end
             return false,"timed out"
         end
     end

@@ -225,14 +225,14 @@ end
 
 local function me_import(timeout)
     timeout=timeout or 4
-    trans.setSendChannel("item","AE_Import",true)
+    trans.setSendChannel("item","ToShopChest",true)
     redstone.setOutput(redstone_side,15)
     local ret=false
     if sendItems(timeout) then
         ret=true
     end
     redstone.setOutput(redstone_side,0)
-    trans.setSendChannel("item","AE_Import",false)
+    trans.setSendChannel("item","ToShopChest",false)
     return ret
 end
     
@@ -364,8 +364,11 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
         trans.setIOMode(chest_dim_side,"pull")
         trans.setSendChannel("item",user,true)
         if not sendItems(4,0) then
-            trans.setIOMode(chest_dim_side,"push")
+            trans.setIOMode(chest_dim_side,"disabled")
             trans.setSendChannel("item",user,false)
+            trans.setSendChannel("item","ToShopChest",true)
+            os.sleep(0.2)
+            trans.setSendChannel("item","ToShopChest",false)
             local balance=calculateBalance(getItems(),items)
             if not addBalance(user,balance) then
                 log("Error adding balance "..balance.." after failed import and failed sending back")
@@ -404,6 +407,9 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
     if success then
         return true,"sent"
     else
+        trans.setSendChannel("item","ToShopChest",true)
+        os.sleep(0.2)
+        trans.setSendChannel("item","ToShopChest",false)
         local balance=calculateBalance(getItems(),items)
         if addBalance(user,balance) then
             trans.setSendChannel("item",user,false)
