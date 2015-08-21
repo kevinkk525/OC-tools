@@ -4,7 +4,7 @@ local database_entries=81
 local stack_exp_side=0
 local half_exp_side=3
 local single_exp_side=4
-local quarter_exp_side=1
+local eighth_exp_side=1
 local chest_side=4
 local shopHost
 local redstone_side=5
@@ -107,8 +107,8 @@ local function initExport()
             ex_half=component.proxy(tmp[i])
         elseif component.proxy(tmp[i]).setConfiguration(stack_exp_side,database.address,2) then
             ex_stack=component.proxy(tmp[i])
-        elseif component.proxy(tmp[i]).setConfiguration(quarter_exp_side,database.address,2) then
-            ex_quarter=component.proxy(tmp[i])
+        elseif component.proxy(tmp[i]).setConfiguration(eighth_exp_side,database.address,2) then
+            ex_eighth=component.proxy(tmp[i])
         end
     end
     if not ex_single or not ex_half or not ex_stack then
@@ -181,7 +181,9 @@ local function calculateBalance(items,price)
         if not price[item] then
             log("item not found in price table, not possible for export")
         else
-            local percent=item.size/price[item].size
+            local test=items[item].size
+            local test2=price[item].size
+            local percent=items[item].size/price[item].size
             if percent>1 then percent=1 end
             balance=balance+(price[item][1]*percent)
         end
@@ -435,13 +437,13 @@ function s.export(user,items) --currently host has to take care of stack amounts
         tm=items[i].size-am*item.maxSize
         local hm,bm=math.modf(tm/(item.maxSize/2))
         bm=tm-hm*(item.maxSize/2)
-        local gm,jm=math.modf(bm/(item.maxSize/4))
-        bm=bm-gm*(item.maxSize/4)
+        local gm,jm=math.modf(bm/(item.maxSize/8))
+        bm=bm-gm*(item.maxSize/8)
         local slot=database.indexOf(i)
         local cm=ex_single.setConfiguration(single_exp_side,database.address,slot)
         local dm=ex_stack.setConfiguration(stack_exp_side,database.address,slot)
         local em=ex_half.setConfiguration(half_exp_side,database.address,slot)  
-        local fm=ex_quarter.setConfiguration(quarter_exp_side,database.address,slot)
+        local fm=ex_eighth.setConfiguration(eighth_exp_side,database.address,slot)
         if not cm or not dm or not em or not fm then
             log("Configuration of exportbus failed!"..tostring(cm)..tostring(dm)..tostring(em))
             return false,"configuration failed"
@@ -459,9 +461,9 @@ function s.export(user,items) --currently host has to take care of stack amounts
                 end
             end   
             for i=1,gm do
-                if not ex_quarter.exportIntoSlot(quarter_exp_side,1) then
-                    log("Error during quarter-export")
-                    return false,"Error during quarter-export"
+                if not ex_eighth.exportIntoSlot(eighth_exp_side,1) then
+                    log("Error during eighth-export")
+                    return false,"Error during eighth-export"
                 end
             end
             for i=1,bm do
@@ -554,7 +556,7 @@ function s.initialize(handler)
     ex_single={}
     ex_stack={}
     ex_half={}
-    ex_quarter={}
+    ex_eighth={}
     d={}
     if hooks["backup"]==nil then
         b=f.addHook("backup","backup")
@@ -589,6 +591,6 @@ function s.getDatabase() return database end
 function s.singleExport() return ex_single end  --only debug
 function s.halfExport() return ex_half end
 function s.stackExport() return ex_stack end
-function s.quarterExport() return ex_quarter end
+function s.eighthExport() return ex_eighth end
 
 return s
