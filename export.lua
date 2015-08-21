@@ -350,7 +350,7 @@ function s.import(user,items)
     return true,imported
 end
 
-local function s.updateShopHost()
+function s.updateShopHost()
     shopHost=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopHost"})[1]
 end
 
