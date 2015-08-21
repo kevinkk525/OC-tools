@@ -1,5 +1,5 @@
 ---
-local version="0.1b"
+local version="0.1"
 local author="kevinkk525"
 ---
 
