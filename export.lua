@@ -188,10 +188,6 @@ local function calculateBalance(items,price)
     return balance
 end
 
-local function sendItems(timeout)
-    receiveItems(timeout,0)
-end
-
 local function receiveItems(timeout,size)
     size=size or 0
     timeout=timeout or transmission_timeout
@@ -218,6 +214,10 @@ local function receiveItems(timeout,size)
         end
     end
     return true
+end
+
+local function sendItems(timeout)
+    receiveItems(timeout,0)
 end
 
 local function me_import(timeout)
@@ -548,6 +548,8 @@ function s.initialize(handler)
     initTradeTable()
     initExport()
     initStoreFunction()
+    trans.setIOMode(chest_dim_side,"disabled")
+    trans.setSendChannel("item","AE_Import",false)
     f.registerFunction(s.updateTradeTable,"updateTradeTable")
     f.registerFunction(s.exportTo,"exportTo")
     f.registerFunction(s.importFrom,"importFrom")
