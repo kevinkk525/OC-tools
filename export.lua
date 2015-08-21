@@ -188,9 +188,6 @@ local function calculateBalance(items,price)
     return balance
 end
 
-function s.calculateBalance(items,price) return calculateBalance(items,price) end
-function s.getItems() return getItems() end
-
 local function receiveItems(timeout,size)
     size=size or 0
     timeout=timeout or transmission_timeout
@@ -351,6 +348,10 @@ function s.import(user,items)
         end
     end
     return true,imported
+end
+
+local function s.updateShopHost()
+    shopHost=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopHost"})[1]
 end
 
 function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}

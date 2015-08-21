@@ -344,3 +344,5 @@ function t.complete( sSearchText, tSearchTable )
     table.sort( tResults )
     return tResults
 end
+
+return t
