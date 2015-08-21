@@ -176,9 +176,9 @@ end
 local function calculateBalance(items,price)
     local balance=0
     for item in pairs(items) do
-        if not price[item] then
+        if item~="size" and not price[item] then
             log("item not found in price table, not possible for export")
-        else
+        elseif item~="size" then
             local percent=items[item].size/price[item].size
             if percent>1 then percent=1 end
             balance=balance+(price[item][1]*percent)
