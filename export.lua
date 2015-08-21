@@ -309,51 +309,10 @@ function s.import(user,items)
     local try=0
     local part=1
     local amount={}
-    local err=false
-    while true do
-        os.sleep(0.1)
-        if part==1 then
-            local slotn=me.getItemsInNetwork()["n"]
-            if slotn~=slots then
-                slots=slotn
-                try=0
-            else
-                try=try+1
-                if try==6 then
-                    part=2
-                    for i=1,me.getItemsInNetwork()["n"] do
-                        amount[i]=me.getItemsInNetwork()[i]
-                    end
-                    try=0
-                end
-            end
-        elseif part==2 then
-            if #amount==me.getItemsInNetwork()["n"] then
-                local amount2={}
-                for i=1,me.getItemsInNetwork()["n"] do
-                    amount2[i]=me.getItemsInNetwork()[i]
-                    if amount2[i]~=amount[i] then
-                        part=1
-                        try=0
-                    end
-                end
-                if part==2 then
-                    try=try+1
-                end
-                if try==7 and part==2 then
-                    break
-                end
-            end
-        end                
-        timeout=timeout+1
-        if timeout>=receiving_timeout then
-            err=true
-            break
-        end
-    end
+    local err=sendItems(7)
     trans.setIOMode(chest_dim_side,"disabled")
     trans.setReceiveChannel("item",user,false)
-    if err then
+    if not err then
         log("timeout during import")
     end
     if not s.changeSwitch(user,"close") then
@@ -362,11 +321,13 @@ function s.import(user,items)
     end
     local imported=getItems()
     for item in pairs(imported) do
-        if not items[item] or not exchange.getMoney()[imported[item].label] or imported[item].size~=items[item].size then
-            return false,"different items/amounts"
+        if item~="size" then
+            if not (items[item] or exchange.getMoney()[imported[item].label]) or imported[item].size~=items[item].size then
+                return false,"different items/amounts"
+            end
         end
     end
-    if items.price and hard_currency then
+    if items[1] and hard_currency then
         local imported_money=exchange.count(imported)
         if items.price>imported_money then
             return false,"not correct money amount"
@@ -386,27 +347,20 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
         if not s.changeSwitch(user,"send") then
             log("error during try of sending back imported items")
         end
-        trans.setIOMode(chest_dim_side,"pull")
-        trans.setSendChannel(item,user,true)
+        trans.setIOMode(chest_dim_side,"push")
+        trans.setReceiveChannel("item",user,true)
         if not sendItems() then
-            local balance=0
-            for item in pairs(imported) do
-                if items[item] then
-                    local percent=item.size/items[item].size
-                    if percent>1 then percent=1 end
-                    balance=balance+(items[item][1]*percent)
-                end
-            end
+            local balance=calculateBalance(getItems(),items)
             if not addBalance(user,balance) then
                 log("Error adding balance after faild import and failed sending back")
                 me_import()
                 trans.setIOMode(chest_dim_side,"disabled")
-                trans.setSendChannel(item,user,false)
+                trans.setReceiveChannel("item",user,false)
                 return "error adding balance after failed import and failed sending back"
             end
         end
         trans.setIOMode(chest_dim_side,"disabled")
-        trans.setSendChannel(item,user,false)
+        trans.setSendChannel("item",user,false)
         return "sent back, wrong items"
     else
         return true,"imported successfully"

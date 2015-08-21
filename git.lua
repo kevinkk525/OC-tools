@@ -29,8 +29,8 @@ for i=1,#args do
         only=true
     else
         local command="wget -f "..url.." "..path..args[i]
-    end
-    os.execute(command)
+        os.execute(command)
+    end    
 end
 if not only then
     print("downloading GUI-API")
