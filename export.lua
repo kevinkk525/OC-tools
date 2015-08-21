@@ -173,7 +173,7 @@ local function getItems()
     return ret
 end
 
-local function calculateBalance(items,price)
+function calculateBalance(items,price)
     local balance=0
     for item in pairs(items) do
         if item~="size" and not price[item] then
@@ -205,7 +205,7 @@ local function receiveItems(timeout,size)
             new=new+items[i].size
         end
         if new==size then
-            break
+            return true
         elseif change==new then
             count=count+sleep+0.1 --calculation offset
         else
@@ -217,7 +217,7 @@ local function receiveItems(timeout,size)
 end
 
 local function sendItems(timeout)
-    receiveItems(timeout,0)
+    return receiveItems(timeout,0)
 end
 
 local function me_import(timeout)
@@ -377,13 +377,13 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
 end
 
 function s.exportTo(user,items) --add time in errorlog; items structure: hash={size=amount,[1]=price}
-    local success,err=s.export(user,items),
+    local success,err=s.export(user,items)
     print(err)
     if success then
         return true,"sent"
     else
         local balance=calculateBalance(getItems(),items)
-        if addBalance(user,amount) then
+        if addBalance(user,balance) then
             trans.setSendChannel("item",user,false)
             trans.setIOMode(chest_dim_side,"disabled")
             me_import()
@@ -550,6 +550,7 @@ function s.initialize(handler)
     initStoreFunction()
     trans.setIOMode(chest_dim_side,"disabled")
     trans.setSendChannel("item","AE_Import",false)
+    redstone.setOutput(redstone_side,0)
     f.registerFunction(s.updateTradeTable,"updateTradeTable")
     f.registerFunction(s.exportTo,"exportTo")
     f.registerFunction(s.importFrom,"importFrom")
