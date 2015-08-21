@@ -585,6 +585,7 @@ function s.initialize(handler)
     f.registerFunction(s.getDeactivated,"getDeactivated")
     f.registerFunction(s.resetDeactivated,"resetDeactivated")
     f.registerFunction(s.getTradeTable,"getTradeTable")
+    f.registerFunction(s.updateShopHost,"updateShopHost")
 end
 
 function s.getDeactivated() return deactivated end
