@@ -372,6 +372,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
         trans.setSendChannel("item",user,false)
         return "sent back, wrong items"
     else
+        me_import()
         return true,"imported successfully"
     end
 end
