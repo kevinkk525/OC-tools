@@ -1,3 +1,4 @@
+--deprecated
 ---config section
 local version="0.9a"
 local database_entries=81

@@ -568,14 +568,14 @@ function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},
             me_storage.store(items[i][1],1)
             local hash=database.computeHash(1)
             result[i]=hash
-            if not trade_table[hash] then
-                trade_table.size=trade_table.size+1
-            end
-            trade_table[hash]=items[i]
             database.clear(1)
             me_storage.store(items[i][1])
             if database.indexOf(hash)>0 then
                 result[i]=hash
+                if not trade_table[hash] then
+                    trade_table.size=trade_table.size+1
+                end
+                trade_table[hash]=items[i]
             else
                 result[i]=false
             end
