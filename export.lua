@@ -66,6 +66,9 @@ local function initME()
         else
             me=component.proxy(i)
         end
+        if not me_storage or not me then
+            print("Error during ME initialization")
+        end
     end
 end
 
@@ -130,7 +133,7 @@ end
 
 local function initStoreFunction()
     local me_store=me.store
-    local me_store_storage=me_storage.stre
+    local me_store_storage=me_storage.store
     me.store=function(item,slot,address)
         slot=slot or -1
         if slot==-1 and not address then 
@@ -561,8 +564,8 @@ function s.export(user,items) --currently host has to take care of stack amounts
     return true,"items exported"
 end
 
-function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},name=label?}}  --how to add items? into database? 2nd ME?
-    local result={} --rejected because not in database --and me
+function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},name=label?}} 
+    local result={} 
     for i=1,#items do
         if me_storage.getItemsInNetwork(items[i][1]).n==1 then
             me_storage.store(items[i][1],1)
