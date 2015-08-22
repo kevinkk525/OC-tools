@@ -185,10 +185,9 @@ local function initStoreFunction()
             database.clear(slot,database.address)
             me_store_storage(item,database.address,slot)
             database.clear(1)
-        elseif address then
-            database.setAddress(address)
-            database.clear(slot)
-            me_store_storage(item,database.address,slot)
+        elseif address and slot>0 then
+            database.clear(slot,address)
+            me_store_storage(item,address,slot)
         elseif not address and slot==-1 then
             database.clear(1)
             me_store_storage(item,database.address)
