@@ -1,5 +1,5 @@
 ---config section
-local version="0.1b"
+local version="0.3b"
 local database_entries=81
 local stack_exp_side=0
 local half_exp_side=3
@@ -650,16 +650,8 @@ function s.initialize(handler)
 end
 
 function s.getDeactivated() return deactivated end
-
 function s.resetDeactivated() deactivated={} end
-
 function s.getTradeTable() return trade_table end
-
 function s.getDatabase() return database end
-
-function s.singleExport() return ex_single end  --only debug
-function s.halfExport() return ex_half end
-function s.stackExport() return ex_stack end
-function s.eighthExport() return ex_eighth end
 
 return s
