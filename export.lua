@@ -66,9 +66,9 @@ local function initME()
         else
             me=component.proxy(i)
         end
-        if not me_storage or not me then
-            print("Error during ME initialization")
-        end
+    end
+    if not me_storage or not me then
+        print("Error during ME initialization")
     end
 end
 
@@ -134,6 +134,7 @@ end
 local function initStoreFunction()
     local me_store=me.store
     local me_store_storage=me_storage.store
+    me.store=nil
     me.store=function(item,slot,address)
         slot=slot or -1
         if slot==-1 and not address then 
@@ -165,6 +166,7 @@ local function initStoreFunction()
             database.clear(1)
         end
     end
+    me_storage.store=nil
     me_storage.store=function(item,slot,address)
         slot=slot or -1
         if slot==-1 and not address then 
