@@ -1,5 +1,5 @@
 ---config section
-local version="0.9a"
+local version="0.1b"
 local database_entries=81
 local stack_exp_side=0
 local half_exp_side=3
@@ -24,7 +24,8 @@ local component=require("component")
 local exchange=require("money_exchange")
 local s={} --functions
 local b={} --backup
-local me=component.me_controller
+local me
+local me_storage
 local ex_single={}
 local ex_stack={}
 local ex_half={}
@@ -36,7 +37,7 @@ local switch=""
 local inv=component.inventory_controller
 local chest_size=inv.getInventorySize(chest_side)
 local redstone=component.redstone
-local deactivated={} --deactivated because missing in database
+local deactivated={} --deactivated on init because missing in database
 
 local registrationServer
 
@@ -54,6 +55,16 @@ local function regServer()
             file=io.open("/lib/registrationServer","w")
             file:write(registrationServer)
             file:close()
+        end
+    end
+end
+
+local function initME()
+    for i in component.list("me_controller") do
+        if component.proxy(i).getItemsInNetwork().n>0 then
+            me_storage=component.proxy(i)
+        else
+            me=component.proxy(i)
         end
     end
 end
@@ -119,9 +130,10 @@ end
 
 local function initStoreFunction()
     local me_store=me.store
+    local me_store_storage=me_storage.stre
     me.store=function(item,slot,address)
         slot=slot or -1
-        if slot>1 and not address then 
+        if slot==-1 and not address then 
             while true do 
                 if database.get(database_entries) then
                     database.nextAddress()
@@ -132,16 +144,53 @@ local function initStoreFunction()
         elseif slot==1 and not address then
             database.clear(1)
         end
-        if not database.get(1) and not address then
+        if slot==1 and not address and not database.get(1) then
             me_store(item,database.address,1)
         end
         if not address and slot~=1 and slot~=-1 then
+            database.clear(slot,database.address)
             me_store(item,database.address,slot)
             database.clear(1)
         elseif address then
             database.setAddress(address)
             database.clear(slot)
             me_store(item,database.address,slot)
+        elseif not address and slot==-1 then
+            database.clear(1)
+            me_store(item,database.address)
+            me_store(item,database.address)
+            database.clear(1)
+        end
+    end
+    me_storage.store=function(item,slot,address)
+        slot=slot or -1
+        if slot==-1 and not address then 
+            while true do 
+                if database.get(database_entries) then
+                    database.nextAddress()
+                else
+                    break
+                end
+            end
+        elseif slot==1 and not address then
+            database.clear(1)
+        end
+        if slot==1 and not address and not database.get(1) then
+            me_store_storage(item,database.address,1)
+        end
+        if not address and slot~=1 and slot~=-1 then
+            database.clear(slot,database.address)
+            me_store_storage(item,database.address,slot)
+            database.clear(1)
+        elseif address then
+            database.setAddress(address)
+            database.clear(slot)
+            me_store_storage(item,database.address,slot)
+        elseif not address and slot==-1 then
+            database.clear(1)
+            me_store_storage(item,database.address)
+            me_store_storage(item,database.address)
+            database.clear(1)
         end
     end
 end
@@ -512,22 +561,29 @@ function s.export(user,items) --currently host has to take care of stack amounts
     return true,"items exported"
 end
 
-function s.addItem(items) --structure: hash={[1]=nbt,{s/b={{amount,prize},...},name=label?}}  --how to add items? into database? 2nd ME?
-    local rej={} --rejected because not in database --and me
-    for item in pairs(items) do
-        if trade_table[item] and item~="size" then
-            trade_table[item]=items[item]
-        elseif item~="size" then
-            if database.indexOf(item)>0 then
-                trade_table[item]=items[item]
+function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},name=label?}}  --how to add items? into database? 2nd ME?
+    local result={} --rejected because not in database --and me
+    for i=1,#items do
+        if me_storage.getItemsInNetwork(items[i][1]).n==1 then
+            me_storage.store(items[i][1],1)
+            local hash=database.computeHash(1)
+            result[i]=hash
+            if not trade_table[hash] then
                 trade_table.size=trade_table.size+1
-            else
-                rej[#rej+1]=item
             end
+            trade_table[hash]=items[i]
+            database.clear(1)
+            me_storage.store(items[i][1])
+            if database.indexOf(hash)>0 then
+                result[i]=hash
+            else
+                result[i]=false
+            end
+        else
+            result[i]=false
         end
     end
-    deactivated=rej
-    return rej
+    return result
 end
 
 function s.removeItem(items)
@@ -535,7 +591,7 @@ function s.removeItem(items)
         if trade_table[item] then
             trade_table[item]=nil
             trade_table.size=trade_table.size-1
-            --database.clear(database.indexOf(item)) --leave all items in database
+            database.clear(database.indexOf(item))
         end
     end
     return true
@@ -570,6 +626,7 @@ function s.initialize(handler)
     shopHost=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopHost"})[1]
     if not shopHost then print("error, could not get a shopHost") end
     print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","ShopExport"}))
+    initME()
     initDatabase()
     initTradeTable()
     initExport()

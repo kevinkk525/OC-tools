@@ -1,3 +1,4 @@
+stupid idea...
 --------------
 local version="0.1b"
 --------------
