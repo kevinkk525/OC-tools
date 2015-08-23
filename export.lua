@@ -11,8 +11,10 @@ local redstone_side=5
 local chest_dim_side=2
 local transmission_timeout=4
 local receiving_timeout=4
-local hard_currency=true
+local hard_currency=false
 ------
+
+--update to use eco-system correctly + transaction-ident
 
 --sides: down:0,up:1,south:3,east:5,
 --items need to be in ME-network
