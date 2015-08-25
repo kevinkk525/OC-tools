@@ -12,6 +12,7 @@ local exchange=require("money_exchange")
 local computer=require("computer")
 local fs=require("filesystem")
 local sha256=require"sha256"
+local event=require"event"
 local eco
 
 local s={}

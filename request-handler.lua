@@ -1,5 +1,5 @@
 ---config section
-local version="0.9.9.9.8b"
+local version="0.9.9.9.9b"
 ---
 
 local math=require("math")
@@ -346,9 +346,9 @@ function f.execute(short) --short: execution without dynamic sleep time
     end
     if #priority_tasks>0 then
         for i=1,#priority_tasks,1 do
-            for j=1,#state[priority_tasks[i].status],1 do
-                state[priority_tasks[i].status][j](priority_tasks[i].data)
-            end
+            --for j=1,#state[priority_tasks[i].status],1 do
+                priority_tasks[i].com(priority_tasks[i].data) --priority tasks currently only support internal execution without state support and wait
+            --end
         end
     end
 end
