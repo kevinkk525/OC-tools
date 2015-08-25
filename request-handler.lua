@@ -123,7 +123,7 @@ function f.randID()
     return id
 end
 
-function f.addTask(command,data,id,source,status,add_Data,add_Data_position,priority,override_id)
+function f.addTask(command,data,id,source,status,add_Data_position,add_Data,priority,override_id)
     local adding=true
     source=source or "internal"
     if command==nil and id==nil and status==nil and source=="external" and data==nil then
