@@ -21,7 +21,6 @@ local registrationServer
 local f
 local shopOwner
 local ownerPassword
-local me=component.me_controller
 local trade_table={} --structure: size=int,hash={s/b={{amount,prize},...},name=label?}
 local trans={} --structure: [user]={[uptime]=uptime,[status]=status,[trans-id]=randID}
 local export_list={}
@@ -235,7 +234,7 @@ end
 
 function s.quitTransaction()
     for user in trans do
-        if trans[user].address==f.getData([3]) then
+        if trans[user].address==f.getData()[3] then
             if not trans[user].status=="processing" then 
                 fs.remove("/tmp"..trans[i].id)
                 trans[user]=nil
@@ -376,7 +375,7 @@ end
 function s.export_control()
     if #export_list>0 then
         if export_list[1].status=="waiting" then
-            local task-id=f.addTask(s.startProcessing)
+            local task_id=f.addTask(s.startProcessing)
             export_list[1].status="processing"
         end
     end
@@ -428,11 +427,11 @@ end
     
 function s.initialize(handler)
 	regServer()
+    eco=f.addHook("eco","bankAPI")
     ownerCredentials()
     loadTradeTable()
     loadUser()
 	f=handler
-    eco=f.addHook("eco","bankAPI")
 	b={}
 	if hooks["backup"]==nil then
 		b=f.addHook("backup","backup")
