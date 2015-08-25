@@ -11,6 +11,7 @@ local component=require("component")
 local exchange=require("money_exchange")
 local computer=require("computer")
 local fs=require("filesystem")
+local sha256=require"sha256"
 local eco
 
 local s={}
@@ -66,7 +67,7 @@ local function ownerCredentials()
         if inp=="quit" or inp=="q" then
             os.exit()
         else
-            ownerPassword=eco.sha256(inp)
+            ownerPassword=sha256(inp)
         end
         local file=io.open("/shopOwner","w")
         file:write(shopOwner.."\n"..ownerPassword)
@@ -426,21 +427,21 @@ function s.updateTradeTable(tab)
 end
     
 function s.initialize(handler)
-	regServer()
+	f=handler
+    regServer()
     eco=f.addHook("eco","bankAPI")
     ownerCredentials()
     loadTradeTable()
     loadUser()
-	f=handler
-	b={}
-	if hooks["backup"]==nil then
-		b=f.addHook("backup","backup")
-	end
-	export=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopExport"})[1]
+    b={}
+    if hooks["backup"]==nil then
+        b=f.addHook("backup","backup")
+    end
+    export=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopExport"})[1]
     switch=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","Switch"})[1]
     if not export or not switch then print("Error, no export or switch found") end
-	print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","ShopHost"}))
-	if not export then print("no ShopExport-processor found") end
+    print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","ShopHost"}))
+    if not export then print("no ShopExport-processor found") end
     f.registerFunction(s.addBalance,"addBalance")
     f.registerFunction(s.getTradeTable,"getTradeTable")
     f.registerFunction(s.initTrade,"initTrade")
