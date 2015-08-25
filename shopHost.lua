@@ -261,6 +261,7 @@ function s.receivePayment(user,pass,message,balance)
 end
 
 function s.initTrade(user)
+    if not user then return "Please specify user" end
     if not trans[user] then
         trans[user]={["uptime"]=computer.uptime(),["status"]="init",["id"]=randID(),["address"]=f.getData()[3]}
     else
@@ -334,7 +335,7 @@ function s.buy(user,pass,items,price) --structure items: {[hash]={[size]=size,[1
     if ret~=true then
         return ret
     end
-    if not user_list(user) then
+    if not user_list[user] then
         return "We are sorry, but you are not registered. Talk to the Owner!"
     end
     if trans[user] and price and calculatePrice(items,trans[user].id,"s")==price then
@@ -382,7 +383,7 @@ end
 function s.startProcessing()
     hooks.m.send({export_list[1].address,801,{user_list[export_list[1].user],export_list[1].items},export_list[1].mode})
     f.pause(s.finishProcessing)
-    for i=1,#export_control do
+    for i=1,#export_list do
         f.sendCommand(export_list[i].address,"updateInfo","You are #"..i.."in queue, please have patience")
         os.sleep(0.1)
     end
