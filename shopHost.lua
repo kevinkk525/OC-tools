@@ -381,10 +381,10 @@ function s.sell(user,pass,items,price) --add item amount check --> chest
 end
 
 function s.startProcessing()
-    hooks.m.send({export_list[1].address,801,{user_list[export_list[1].user],export_list[1].items},export_list[1].mode})
+    hooks.m.send({export,801,{user_list[export_list[1].user],export_list[1].items},export_list[1].mode})
     f.pause(s.finishProcessing)
     for i=1,#export_list do
-        f.sendCommand(export_list[i].address,"updateInfo","You are #"..i.."in queue, please have patience")
+        f.sendCommand(export_list[i].address,"updateInfo","You are #"..i.." in queue, please have patience")
         os.sleep(0.1)
     end
 end
