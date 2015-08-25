@@ -153,7 +153,7 @@ local function checkItems(items)
         if not trade_table[item] then
             return false
         end
-        amount=amount+math.modf(items[item][1].size/trade_table[item][1].maxSize)+1
+        amount=amount+math.modf(items[item].size/trade_table[item][1].maxSize)+1
     end
     if amount>chest_size then
         return false
@@ -175,6 +175,24 @@ local function loadMarked()
         if #marked_for_removal>0 then redstone.setOutput(1,15) else redstone.setOutput(1,0) end
         file:close()
     end
+end
+
+local function calculatePrice(items,id,mode)
+    local tab
+    local price=0
+    local file=io.open("/tmp/"..id,"r")
+    if file then
+        tab=serialization.unserialize(file:read("*all"))
+        file:close()
+        if type(tab)~="table" then tab=trade_table end
+    end
+    for item in pairs(items) do 
+        if not tab[item][mode] then
+            return 1000000000
+        end
+        price=price+tab[item][mode][1]*items[item].size
+    end
+    return price
 end
 
 ---------------------------
@@ -209,7 +227,7 @@ function s.removeUser(channel)
     end
     if user_list[channel] then
         for i=1,#marked_for_removal do
-            if marked_for_removal[i]=channel then
+            if marked_for_removal[i]==channel then
                 table.remove(marked_for_removal,i)
                 user_list[user_list[channel]]=nil
                 user_list[channel]=nil
@@ -319,7 +337,7 @@ function s.buy(user,pass,items,price) --structure items: {[hash]={[size]=size,[1
     if not user_list(user) then
         return "We are sorry, but you are not registered. Talk to the Owner!"
     end
-    if trans[user] and price and calculatePrice(items,trans[user].id)==price then
+    if trans[user] and price and calculatePrice(items,trans[user].id,"s")==price then
         local ret=s.receivePayment(user,pass,"Kevrium: Buy #"..trans[user].id,price) --add check from owner side?
         if ret~=true then
             return ret
@@ -350,7 +368,7 @@ function s.sell(user,pass,items,price) --add item amount check --> chest
     if not user_list(user) then
         return "We are sorry, but you are not registered. Talk to the Owner!"
     end
-    if trans[user] and price and calculatePrice(items,trans[user].id)==price then
+    if trans[user] and price and calculatePrice(items,trans[user].id,"b")==price then
         export_list[#export_list+1]={["user"]=user,["items"]=items,["mode"]="importFrom",["status"]="waiting",["address"]=f.getData()[3],["price"]=price}
         trans[user].status="processing"
         return true
@@ -437,6 +455,7 @@ function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},
             print("Error adding "..items[i][1].label)
         else
             if not trade_table[result[i]] then
+                if not trade_table.size then trade_table.size=0 end
                 trade_table.size=trade_table.size+1
             end
             trade_table[result[i]]=items[i]
