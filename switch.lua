@@ -1,5 +1,5 @@
 ---------------
-local version="0.9.7b"
+local version="0.9.8b"
 ---------------
 
 --sides: down:0,up:1,south:3,east:5
@@ -198,8 +198,7 @@ function s.registerUser(username)
     if s.getUserNumber()==#trans then return false,"no available transceivers" end
     for i=1,#trans do
         if not user[i] then
-            trans[i].setSendChannel("item",username,true)
-            --trans[i].setReceiveChannel("item",username,true) --prevents item loss
+            trans[i].setReceiveChannel("item",username,true)
             user[i]=username
             user[username]=i
             break
