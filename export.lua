@@ -1,5 +1,5 @@
 ---config section
-local version="0.3b"
+local version="0.4b"
 local database_entries=81
 local stack_exp_side=0
 local half_exp_side=3
@@ -434,7 +434,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
                 if not s.changeSwitch(user,"close") then
                     log("error closing switch")
                 end
-                return "error adding balance after failed import and failed sending back"
+                return "error adding balance after failed import and failed sending back,"..balance
             end
             if not s.changeSwitch(user,"send") then
                 log("error closing switch")
@@ -573,7 +573,6 @@ function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},
         if me_storage.getItemsInNetwork(items[i][1]).n==1 then
             me_storage.store(items[i][1],1)
             local hash=database.computeHash(1)
-            result[i]=hash
             database.clear(1)
             me_storage.store(items[i][1])
             if database.indexOf(hash)>0 then
@@ -593,11 +592,11 @@ function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},
 end
 
 function s.removeItem(items)
-    for item in pairs(items) do
-        if trade_table[item] then
-            trade_table[item]=nil
+    for i=1,#items do
+        if trade_table[items[i]] then
+            trade_table[items[i]]=nil
             trade_table.size=trade_table.size-1
-            database.clear(database.indexOf(item))
+            database.clear(database.indexOf(items[i]))
         end
     end
     return true

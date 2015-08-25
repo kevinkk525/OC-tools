@@ -1,7 +1,7 @@
 ---
 local version="0.3b"
 local author="kevinkk525"
-local port=174
+local port=801
 local shopmaster=""
 ---
 

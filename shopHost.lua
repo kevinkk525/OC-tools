@@ -1,5 +1,5 @@
 ---------------
-local version="0.1b"
+local version="0.2b"
 local author="kevinkk525"
 ---------------config section
 local hard_currency=false
@@ -28,8 +28,7 @@ local export_list={}
 local user_list={} --structure: [user]=channel,[channel]=user
 
 --additems, removeitems, updateTradeTable... (move adding to different pc)
---shopHost needs a transceiver?
---add removeInactiveUsers
+--shopHost needs a transceiver
 
 
 local function loadTradeTable()
@@ -136,7 +135,16 @@ local function checkTransceiver(user)
         return true
     else
         local channel
-        local channels=trans.???? --abgleich mit chX
+        local channels=trans.getChannels("item") 
+        local tmp={}
+        for i=1,#channels do
+            if channels[i]:sub(1,2)~="ch" or not tonumber(channels[i]:sub(3,3)) then
+                tmp[#tmp+1]=i
+            end
+        end
+        for i=#tmp,1,-1 do
+            table.remove(channels,tmp[i])
+        end
         for i=1,#channels do
             if not user_list[channels[i]] then
                 channel=channels[i]
@@ -167,8 +175,36 @@ local function removeUser(user)
         saveUser()
     end
 end
+
+local function authShopControl()
+    local auth=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopControl"})
+    for i=1,#auth do
+        if auth[i]==f.getData()[3] then
+            return true
+        end
+    end
+    if auth~=true then
+        return false
+    end
+end
     
 ---------------------------
+
+function s.removeInactiveUser()
+    local book=eco.book()
+    for i=1,#book do
+        book[book[i]]=1
+    end
+    for i in pairs(user_list) do
+        if not i:sub(1,2)=="ch" and tonumber(i:sub(3)) then
+            if not book[i] then
+                if removeUser(i)~=true then
+                    log("Could not remove User "..i)
+                end
+            end
+        end
+    end
+end
 
 function s.addBalance(user,balance,message) --only call this through req_handler,user has to be user of bank-system
     if type(user)=="table" then balance=user[2] message=user[3] user=user[1] end
@@ -186,11 +222,27 @@ function s.receivePayment(user,pass,message,balance)
 end
 
 function s.initTrade(user)
-    trans[user]={["uptime"]=computer.uptime(),["status"]="init",["id"]=randID()}
+    if not trans[user] then
+        trans[user]={["uptime"]=computer.uptime(),["status"]="init",["id"]=randID(),["address"]=f.getData()[3]}
+    else
+        trans[user].address=f.getData()[3]
+    end
     local file=io.open("/tmp/"..trans[user].id,"w")
     file:write(serialization.serialize(trade_table))
     file:close()
     return trade_table
+end
+
+function s.quitTransaction()
+    for user in trans do
+        if trans[user].address==f.getData([3]) then
+            if not trans[user].status=="processing" then 
+                fs.remove("/tmp"..trans[i].id)
+                trans[user]=nil
+            end
+            break
+        end
+    end
 end
 
 function s.removeInactive()
@@ -208,8 +260,12 @@ end
 
 function s.buy(user,pass,items,price) --structure items: {[hash]={[size]=size,[1]=price}}
     if type(user)=="table" then pass=user[2] items=user[3] price=user[4] user=user[1] end
+    local check=checkItems(items)
     if not user or not pass or not items or not price then
         return "Wrong input, you need a user, a password and items and precalculated price"
+    end
+    if check~=true then
+        return check
     end
     local ret=eco.login(user,pass)
     if ret~=true then
@@ -238,6 +294,10 @@ function s.sell(user,pass,items,price) --add item amount check --> chest
     if not user or not pass or not items or not price then
         return "Wrong input, you need a user, a password and items and precalculated price"
     end
+    local check=checkItems(items)
+    if check~=true then
+        return check
+    end
     local ret=eco.login(user,pass)
     if ret~=true then
         return ret
@@ -260,31 +320,59 @@ function s.startProcessing()
     hooks.m.send({export_list[1].address,801,{user_list[export_list[1].user],export_list[1].items},export_list[1].mode})
     f.pause(s.finishProcessing)
     for i=1,#export_control do
-        f.sendCommand(export_list[i].address,801,"You are #"..i.."in queue, please have patience","updateInfo")
+        f.sendCommand(export_list[i].address,"updateInfo","You are #"..i.."in queue, please have patience")
         os.sleep(0.1)
     end
 end
 
 function s.finishProcessing()
-    if f.getData()==true then
+    if f.getData()[6]==true then
         if export_list[1].mode=="importFrom" then
             local ret=eco.pay(shopOwner,ownerPassword,export_list[1].user,"Kevrium: Sell #"..trans[export_list[1].user].id,export_list[1].price)
             if ret~=true then
-                ret="Error paying you, please contact the ShopOwner immediately!"
+                ret="Error paying you "..export_list[1].price..", please contact the ShopOwner immediately!"
                 log("Error paying "..export_list[1].user.." "..export_list[1].price)
             end
             fs.remove("/tmp/"..trans[export_list[1].user].id)
+            f.sendCommand(export_list[1].address,"updateInfo",ret)
             trans[export_list[1].user]=nil
             table.remove(export_list,1)
-            return ret
         else
-            return true
+            fs.remove("/tmp/"..trans[export_list[1].user].id)
+            f.sendCommand(export_list[1].address,"updateInfo",true)
+            trans[export_list[1].user]=nil
+            table.remove(export_list,1)
         end
     else
-        --complex error handling
+        local ret
+        if export_list[1].mode=="exportTo" then
+            if f.getData()[6]:find("Error during transmission, refunded") then
+                local a,b=f.getData():find("Error during transmission, refunded ")
+                log("Error but refunded with "..f.getData()[6]:sub(b+1))
+                ret="There was an error but you got refunded with "..f.getData()[6]:sub(b+1)
+            else
+                log(f.getData()[6])
+                ret=f.getData()[6]
+            end
+        else
+            if f.getData()[6]=="error adding balance after failed import and failed sending back" then
+                local a,b=f.getData()[6]:find(",")
+                log("Import failed and sending back too. Refund of "..f.getData()[6]:sub(a+1).." was not possible, Contact shop owner")
+                ret="Import failed and sending back too. Refund of "..f.getData()[6]:sub(a+1).." was not possible, Contact shop owner"
+            elseif f.getData()[6]:find("failed sending back, refunded ") then
+                log("Could not send items back, refunded "..f.getData()[6]:sub(31))
+                ret="Could not send items back, refunded "..f.getData()[6]:sub(31)
+            elseif f.getData()[6]=="sent back, wrong items" then
+                ret="You sent wrong items, try again"
+            end
+        end
+        fs.remove("/tmp/"..trans[export_list[1].user].id)
+        f.sendCommand(export_list[1].address,"updateInfo",ret)
+        trans[export_list[1].user]=nil
+        table.remove(export_list,1)
     end
 end
-            
+
 function s.export_control()
     if #export_list>0 then
         if export_list[1].status=="waiting" then
@@ -292,6 +380,50 @@ function s.export_control()
             export_list[1].status="processing"
         end
     end
+end
+
+function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},name=label?}} 
+    if not authShopControl() then
+        return "Not authenticated to use this"
+    end
+    local result=f.remoteRequest(export,"addItem",items)
+    for i=1,#result do
+        if result[i]==false then
+            print("Error adding "..items[i][1].label)
+        else
+            if not trade_table[result[i]] then
+                trade_table.size=trade_table.size+1
+            end
+            trade_table[result[i]]=items[i]
+        end
+    end
+    saveTradeTable()
+    return result
+end
+
+function s.removeItem(items)--structure: index=[hash]
+    if not authShopControl() then
+        return "Not authenticated to use this"
+    end
+    if f.remoteRequest(export,"removeItem",items) then
+        for i=1,#items do
+            if trade_table[items[i]] then
+                trade_table[items[i]]=nil
+                trade_table.size=trade_table.size-1
+            end
+        end
+    else
+        return false
+    end
+    return true  
+        
+end
+
+function s.updateTradeTable(tab)
+    if not authShopControl() then
+        return "Not authenticated to use this"
+    end
+    return f.remoteRequest(export,"updateTradeTable",tab)
 end
     
 function s.initialize(handler)
@@ -315,10 +447,17 @@ function s.initialize(handler)
     f.registerFunction(s.initTrade,"initTrade")
     f.registerFunction(s.buy,"buy")
     f.registerFunction(s.sell,"sell")
+    f.registerFunction(s.addItem,"additem")
+    f.registerFunction(s.removeItem,"removeItem")
+    f.registerFunction(s.quitTransaction,"quitTransaction")
+    f.registerFunction(eco.login,"login")
     f.addTask(s.removeInactive,nil,nil,nil,nil,"interval",computer.uptime()+10,"permanent")
     f.addTask(s.export_control,nil,nil,nil,nil,nil,nil,"permanent")
+    s.removeInactiveUser()
+    event.timer(86400,s.removeInactiveUser,math.huge)
 end
 
 function s.getTradeTable() return trade_table end
+function s.getExportList() return export_list end
 
 return s
