@@ -4,6 +4,7 @@ local author="kevinkk525"
 ---------------config section
 local hard_currency=false
 local offer_timeout=120
+local chest_size=54
 ---------------
 
 local serialization=require("serialization")
@@ -13,6 +14,7 @@ local computer=require("computer")
 local fs=require("filesystem")
 local sha256=require"sha256"
 local event=require"event"
+local redstone=component.redstone
 local eco
 
 local s={}
@@ -28,6 +30,7 @@ local trans={} --structure: [user]={[uptime]=uptime,[status]=status,[trans-id]=r
 local export_list={}
 local user_list={} --structure: [user]=channel,[channel]=user
 local nextInactiveScan=computer.uptime()+10
+local marked_for_removal={}
 
 --additems, removeitems, updateTradeTable... (move adding to different pc)
 --shopHost needs a transceiver
@@ -143,7 +146,37 @@ local function authShopControl()
         return false
     end
 end
-    
+ 
+local function checkItems(items)
+    local amount=0
+    for item in pairs(items) do
+        if not trade_table[item] then
+            return false
+        end
+        amount=amount+math.modf(items[item][1].size/trade_table[item][1].maxSize)+1
+    end
+    if amount>chest_size then
+        return false
+    end
+    return true
+end
+
+local function saveMarked()
+    local file=io.open("/marked_for_removal","w")
+    file:write(serialization.serialize(marked_for_removal))
+    file:close()
+end
+
+local function loadMarked()
+    local file=io.open("/marked_for_removal","r")
+    if file then
+        marked_for_removal=serialization.unserialize(file:read("*all"))
+        if type(marked_for_removal)~="table" then marked_for_removal={} end
+        if #marked_for_removal>0 then redstone.setOutput(1,15) else redstone.setOutput(1,0) end
+        file:close()
+    end
+end
+
 ---------------------------
 
 function s.removeInactiveUser()
@@ -154,24 +187,42 @@ function s.removeInactiveUser()
     for i in pairs(user_list) do
         if not i:sub(1,2)=="ch" and tonumber(i:sub(3)) then
             if not book[i] then
-                sign.setValue(user_list[i]..sign.getValue())
+                local exists=false
+                for i=1,#marked_for_removal do
+                    if marked_for_removal[i]==user_lust[i] then 
+                        exists=true
+                        break
+                    end
+                end
+                if not exists then
+                    marked_for_removal[#marked_for_removal+1]=user_list[i]
+                    redstone.setOutput(1,15)
+                end
             end
         end
     end
 end
 
-function s.removeUser(user)
+function s.removeUser(channel)
     if not f.getSource()=="internal" and not authShopControl() then
         return "not authenticated to execute"
     end
-    if user_list[user] then
-        local signum=sign.getValue(sign_side)
-        local a,b=signum:find(user_list[user])
-        sign.setValue(signum:sub(1,a-1)..signum:sub(b+2))
-        user_list[user_list[user]]=nil
-        user_list[user]=nil
-        saveUser()
+    if user_list[channel] then
+        for i=1,#marked_for_removal do
+            if marked_for_removal[i]=channel then
+                table.remove(marked_for_removal,i)
+                user_list[user_list[channel]]=nil
+                user_list[channel]=nil
+                saveUser()
+                saveMarked()
+                if #marked_for_removal==0 then
+                    redstone.setOutput(1,0)
+                end
+                return true
+            end
+        end
     end
+    return false
 end
 
 function s.addBalance(user,balance,message) --only call this through req_handler,user has to be user of bank-system
@@ -377,7 +428,7 @@ function s.export_control()
 end
 
 function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},name=label?}} 
-    if not authShopControl() then
+    if not authShopControl() or not f.getSource()=="internal" then
         return "Not authenticated to use this"
     end
     local result=f.remoteRequest(export,"addItem",items)
@@ -427,9 +478,12 @@ function s.initialize(handler)
     ownerCredentials()
     loadTradeTable()
     loadUser()
+    loadMarked()
     b={}
     if hooks["backup"]==nil then
         b=f.addHook("backup","backup")
+    else
+        b=hooks["backup"]
     end
     export=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopExport"})[1]
     switch=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","Switch"})[1]
@@ -455,5 +509,6 @@ end
 
 function s.getTradeTable() return trade_table end
 function s.getExportList() return export_list end
+function s.getUserList() return user_list end
 
 return s
