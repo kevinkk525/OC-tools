@@ -27,6 +27,7 @@ local trade_table={} --structure: size=int,hash={s/b={{amount,prize},...},name=l
 local trans={} --structure: [user]={[uptime]=uptime,[status]=status,[trans-id]=randID}
 local export_list={}
 local user_list={} --structure: [user]=channel,[channel]=user
+local nextInactiveScan=computer.uptime()+10
 
 --additems, removeitems, updateTradeTable... (move adding to different pc)
 --shopHost needs a transceiver
@@ -247,7 +248,7 @@ function s.quitTransaction()
 end
 
 function s.removeInactive()
-    if f.getData("interval")<computer.uptime() then
+    if nextInactiveScan<computer.uptime() then
         local up=computer.uptime()
         for i in pairs(trans) do
             if trans[i].uptime+offer_timeout<up and trans[i].status=="init" then
@@ -255,7 +256,7 @@ function s.removeInactive()
                 trans[i]=nil
             end
         end
-        f.addData(computer.uptime()+10,"interval")
+        nextInactiveScan=computer.uptime()+10
     end
 end
 
@@ -452,7 +453,7 @@ function s.initialize(handler)
     f.registerFunction(s.removeItem,"removeItem")
     f.registerFunction(s.quitTransaction,"quitTransaction")
     f.registerFunction(eco.login,"login")
-    f.addTask(s.removeInactive,nil,nil,nil,nil,"interval",computer.uptime()+10,"permanent")
+    f.addTask(s.removeInactive,nil,nil,nil,nil,nil,nil,"permanent")
     f.addTask(s.export_control,nil,nil,nil,nil,nil,nil,"permanent")
     s.removeInactiveUser()
     event.timer(86400,s.removeInactiveUser,math.huge)

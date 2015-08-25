@@ -1,6 +1,7 @@
 ---config section
 local version="0.9.9.9.9b"
 ---
+----- rewrite this more object oriented!!
 
 local math=require("math")
 local table=require("table")
