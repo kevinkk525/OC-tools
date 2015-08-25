@@ -193,29 +193,6 @@ function s.close(username) --send direction can be left open?
     return true,"closed"
 end
 
-function s.registerUser(username)
-    if user[username] then return false,"user already registered" end
-    if s.getUserNumber()==#trans then return false,"no available transceivers" end
-    for i=1,#trans do
-        if not user[i] then
-            trans[i].setReceiveChannel("item",username,true)
-            user[i]=username
-            user[username]=i
-            break
-        end
-    end
-    return true,"user added"         
-end
-
-function s.removeUser(username)
-    if not user[username] then return false,"user not registered" end
-    trans[user[username]].setSendChannel("item",username,false)
-    trans[user[username]].setReceiveChannel("item",username,false)
-    user[i]=nil
-    user[username]=nil
-    return true,"user removed"
-end
-
 function s.getUserNumber()
     local j=0
     for i=1,#trans do
@@ -247,7 +224,6 @@ function s.initialize(handler)
     f.registerFunction(s.receive,"receive")
     f.registerFunction(s.close,"close")
     f.registerFunction(s.getTransNumber,"getTransNumber")
-    f.registerFunction(s.registerUser,"registerUser")
     f.registerFunction(s.getUserNumber,"getUserNumber")
     print(f.remoteRequest(registrationServer,"registerDevice",{"H398FKri0NieoZ094nI","Switch"}))
     print("switch started")

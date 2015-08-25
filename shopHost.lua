@@ -1,5 +1,5 @@
 ---------------
-local version="0.2b"
+local version="0.3b"
 local author="kevinkk525"
 ---------------config section
 local hard_currency=false
@@ -132,52 +132,6 @@ local function saveUser()
     file:close()
 end
 
-local function checkTransceiver(user)
-    if user_list[user] then
-        return true
-    else
-        local channel
-        local channels=trans.getChannels("item") 
-        local tmp={}
-        for i=1,#channels do
-            if channels[i]:sub(1,2)~="ch" or not tonumber(channels[i]:sub(3,3)) then
-                tmp[#tmp+1]=i
-            end
-        end
-        for i=#tmp,1,-1 do
-            table.remove(channels,tmp[i])
-        end
-        for i=1,#channels do
-            if not user_list[channels[i]] then
-                channel=channels[i]
-                break
-            end
-        end
-        if not channel then
-            return false
-        end
-        local ret=f.remoteRequest(switch,"registerUser",channel)
-        if ret==true then
-            user_list[channel]=user
-            user_list[user]=channel
-            saveUser()
-        end
-        return ret
-    end
-end
-
-local function removeUser(user)
-    if user_list[user] then
-        local ret=f.remoteRequest(switch,"removeUser",user_list[user])
-        if ret~=true then
-            return "Could not remove user"
-        end
-        user_list[user_list[user]]=nil
-        user_list[user]=nil
-        saveUser()
-    end
-end
-
 local function authShopControl()
     local auth=f.remoteRequest(registrationServer,"getRegistration",{"H398FKri0NieoZ094nI","ShopControl"})
     for i=1,#auth do
@@ -200,19 +154,33 @@ function s.removeInactiveUser()
     for i in pairs(user_list) do
         if not i:sub(1,2)=="ch" and tonumber(i:sub(3)) then
             if not book[i] then
-                if removeUser(i)~=true then
-                    log("Could not remove User "..i)
-                end
+                sign.setValue(user_list[i]..sign.getValue())
             end
         end
+    end
+end
+
+function s.removeUser(user)
+    if not f.getSource()=="internal" and not authShopControl() then
+        return "not authenticated to execute"
+    end
+    if user_list[user] then
+        local signum=sign.getValue(sign_side)
+        local a,b=signum:find(user_list[user])
+        sign.setValue(signum:sub(1,a-1)..signum:sub(b+2))
+        user_list[user_list[user]]=nil
+        user_list[user]=nil
+        saveUser()
     end
 end
 
 function s.addBalance(user,balance,message) --only call this through req_handler,user has to be user of bank-system
     if type(user)=="table" then balance=user[2] message=user[3] user=user[1] end
     message=message or "payment/refund Kevrium"
-    if f.getSource()=="internal" or (f.getSource()=="external" and f.getData()[3]==export) then
+    if f.getSource()=="internal" then
         return eco.pay(shopOwner,ownerPassword,user,message,balance)
+    elseif f.getSource()=="external" and f.getData()[3]==export then
+        return eco.pay(shopOwner,ownerPassword,user_list[user],message,balance)
     else
         return "not authorized to execute this command"
     end
@@ -260,6 +228,30 @@ function s.removeInactive()
     end
 end
 
+function s.addUser(user)
+    if not authShopControl() or not f.getSource()=="internal" then
+        return "not authenticated"
+    end
+    if user_list[user] then
+        return true
+    else
+        local num=f.remoteRequest(switch,"getUserNumber")
+        if not num then return "Error with switch" end
+        local channel
+        for i=1,num do
+            if not user_list["ch"..i] then
+                channel="ch"..i
+                break
+            end
+        end
+        if not channel then return "No available channel" end
+        user_list[channel]=user
+        user_list[user]=channel
+        saveUser()
+        return true
+    end
+end
+
 function s.buy(user,pass,items,price) --structure items: {[hash]={[size]=size,[1]=price}}
     if type(user)=="table" then pass=user[2] items=user[3] price=user[4] user=user[1] end
     local check=checkItems(items)
@@ -273,8 +265,8 @@ function s.buy(user,pass,items,price) --structure items: {[hash]={[size]=size,[1
     if ret~=true then
         return ret
     end
-    if not checkTransceiver(user) then
-        return "We are sorry, but we don't have enough capacity to register you. Talk to the Owner!"
+    if not user_list(user) then
+        return "We are sorry, but you are not registered. Talk to the Owner!"
     end
     if trans[user] and price and calculatePrice(items,trans[user].id)==price then
         local ret=s.receivePayment(user,pass,"Kevrium: Buy #"..trans[user].id,price) --add check from owner side?
@@ -304,8 +296,8 @@ function s.sell(user,pass,items,price) --add item amount check --> chest
     if ret~=true then
         return ret
     end
-    if not checkTransceiver(user) then
-        return "We are sorry, but we don't have enough capacity to register you. Talk to the Owner!"
+    if not user_list(user) then
+        return "We are sorry, but you are not registered. Talk to the Owner!"
     end
     if trans[user] and price and calculatePrice(items,trans[user].id)==price then
         export_list[#export_list+1]={["user"]=user,["items"]=items,["mode"]="importFrom",["status"]="waiting",["address"]=f.getData()[3],["price"]=price}
@@ -452,6 +444,8 @@ function s.initialize(handler)
     f.registerFunction(s.addItem,"additem")
     f.registerFunction(s.removeItem,"removeItem")
     f.registerFunction(s.quitTransaction,"quitTransaction")
+    f.registerFunction(s.removeUser,"removeUser")
+    f.registerFunction(s.addUser,"addUser")
     f.registerFunction(eco.login,"login")
     f.addTask(s.removeInactive,nil,nil,nil,nil,nil,nil,"permanent")
     f.addTask(s.export_control,nil,nil,nil,nil,nil,nil,"permanent")
