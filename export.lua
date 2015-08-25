@@ -410,6 +410,7 @@ function s.updateShopHost()
 end
 
 function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
+    if type(user)=="table" then items=user[2] user=user[1] end
     local money=false
     local success,imported,err=s.import(user,items)
     if not success then
@@ -458,6 +459,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
 end
 
 function s.exportTo(user,items) --add time in errorlog; items structure: hash={size=amount,[1]=price}
+    if type(user)=="table" then items=user[2] user=user[1] end
     local success,err=s.export(user,items)
     print(err)
     if success then
