@@ -81,22 +81,24 @@ local function free_cached_msg()
         if i~="size" then
             if i<=up then
                 for from in pairs(recu[i]) do
-                    for mid in pairs(rec[from]) do
-                        rec[from][mid]=nil
-                        rec[from].size=rec[from].size-1
-                        if parts[mid] then
-                            parts[mid]=nil
-                            local count=0
-                            for a in pairs(parts) do count=count+1 end
-                            if count==0 then parts={} end
+                    if from~="size" then
+                        for mid in pairs(rec[from]) do 
+                            rec[from][mid]=nil
+                            rec[from].size=rec[from].size-1
+                            if parts[mid] then
+                                parts[mid]=nil
+                                local count=0
+                                for a in pairs(parts) do count=count+1 end
+                                if count==0 then parts={} end
+                            end
                         end
-                    end
-                    if rec[from].size==0 then
-                        rec[from]=nil
-                        rec.size=rec.size-1
-                        if rec.size==0 then
-                            rec={}
-                            rec.size=0
+                        if rec[from].size==0 then
+                            rec[from]=nil
+                            rec.size=rec.size-1
+                            if rec.size==0 then
+                                rec={}
+                                rec.size=0
+                            end
                         end
                     end
                 end
