@@ -1,5 +1,5 @@
 ------------------------------
-local version="1.6b"
+local version="1.7b"
 ------------------------------
 local request_timeout=10
 ------------------------------
@@ -82,9 +82,9 @@ local function free_cached_msg()
             if i<=up then
                 for from in pairs(recu[i]) do
                     if from~="size" then
-                        for mid in pairs(rec[from]) do 
+                        for mid in pairs(recu[i][from]) do 
                             rec[from][mid]=nil
-                            rec[from].size=rec[from].size-1
+                            rec[from].size=rec[from].size-1  --size nil for at least 1 entry, no idea how that bug happens
                             if parts[mid] then
                                 parts[mid]=nil
                                 local count=0
@@ -163,11 +163,13 @@ function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of re
                 data[9]=data[9]+1
             end
             modem.send(data[1],data[2],part,tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9]) --parameter limit hit
+            os.sleep(0.1)
             modem.send(data[1],data[2],part,tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9])
             os.sleep(0)
         end
     else
         modem.send(data[1],data[2],tmp2[3],tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9])
+        os.sleep(0.1)
         modem.send(data[1],data[2],tmp2[3],tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9])
     end
     tmp=nil

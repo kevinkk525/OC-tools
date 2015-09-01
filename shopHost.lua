@@ -34,7 +34,7 @@ local marked_for_removal={}
 
 --additems, removeitems, updateTradeTable... (move adding to different pc)
 --shopHost needs a transceiver
-
+--add cancel option if not being processed
 
 local function loadTradeTable()
     local file=io.open("/trade_table","r")
