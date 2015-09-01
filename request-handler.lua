@@ -7,6 +7,7 @@ local math=require("math")
 local table=require("table")
 local serialization=require("serialization")
 local event=require("event")
+local computer=require("computer")
 local f={} --functions
 local r={}
 local events={}
@@ -300,8 +301,7 @@ function f.execute(short) --short: execution without dynamic sleep time
     end
     if exec==true then
         local exec=true
-        increment("lifetime")
-        if r[#r].timeout==computer.uptime()+task_timeout then
+        if r[#r].timeout<=computer.uptime()+task_timeout then
             r[r[#r].id]=nil
             f.remove()
             exec=false

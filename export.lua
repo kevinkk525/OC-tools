@@ -1,5 +1,5 @@
 ---config section
-local version="0.4b"
+local version="0.5b"
 local database_entries=81
 local stack_exp_side=0
 local half_exp_side=3
@@ -134,10 +134,7 @@ local function initExport()
 end
 
 local function initStoreFunction()
-    local me_store=me.store
-    local me_store_storage=me_storage.store
-    me.store=nil
-    me.store=function(item,slot,address)
+    me.storeNew=function(item,slot,address)
         slot=slot or -1
         if slot==-1 and not address then 
             while true do 
@@ -151,25 +148,25 @@ local function initStoreFunction()
             database.clear(1)
         end
         if slot==1 and not address and not database.get(1) then
-            me_store(item,database.address,1)
+            me.store(item,database.address,1)
         end
         if not address and slot~=1 and slot~=-1 then
             database.clear(slot,database.address)
-            me_store(item,database.address,slot)
+            me.store(item,database.address,slot)
             database.clear(1)
         elseif address then
             database.setAddress(address)
             database.clear(slot)
-            me_store(item,database.address,slot)
+            if type(database.address)~="string" then print(database.address) end
+            me.store(item,database.address,slot)
         elseif not address and slot==-1 then
             database.clear(1)
-            me_store(item,database.address)
-            me_store(item,database.address)
+            me.store(item,database.address)
+            me.store(item,database.address)
             database.clear(1)
         end
     end
-    me_storage.store=nil
-    me_storage.store=function(item,slot,address)
+    me_storage.storeNew=function(item,slot,address)
         slot=slot or -1
         if slot==-1 and not address then 
             while true do 
@@ -183,19 +180,19 @@ local function initStoreFunction()
             database.clear(1)
         end
         if slot==1 and not address and not database.get(1) then
-            me_store_storage(item,database.address,1)
+            me_storage.store(item,database.address,1)
         end
         if not address and slot~=1 and slot~=-1 then
             database.clear(slot,database.address)
-            me_store_storage(item,database.address,slot)
+            me_storage.store(item,database.address,slot)
             database.clear(1)
         elseif address and slot>0 then
             database.clear(slot,address)
-            me_store_storage(item,address,slot)
+            me_storage.store(item,address,slot)
         elseif not address and slot==-1 then
             database.clear(1)
-            me_store_storage(item,database.address)
-            me_store_storage(item,database.address)
+            me_storage.store(item,database.address)
+            me_storage.store(item,database.address)
             database.clear(1)
         end
     end
@@ -213,13 +210,13 @@ local function getItems()
     local items=me.getItemsInNetwork()
     ret.size=items.n
     for i=1,#items do
-        me.store(items[i],1)
+        me.storeNew(items[i],1)
         local hash=database.computeHash(1)
         database.clear(1)
         if database.indexOf(hash)<1 then
             local add=database.address
-            me.store(items[i],1)
-            me.store(items[i])
+            me.storeNew(items[i],1)
+            me.storeNew(items[i])
             database.clear(1,add)
         end
         ret[hash]=items[i]
@@ -573,10 +570,10 @@ function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},
     local result={} 
     for i=1,#items do
         if me_storage.getItemsInNetwork(items[i][1]).n==1 then
-            me_storage.store(items[i][1],1)
+            me_storage.storeNew(items[i][1],1)
             local hash=database.computeHash(1)
             database.clear(1)
-            me_storage.store(items[i][1])
+            me_storage.storeNew(items[i][1])
             if database.indexOf(hash)>0 then
                 result[i]=hash
                 if not trade_table[hash] then
