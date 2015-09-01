@@ -163,13 +163,11 @@ function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of re
                 data[9]=data[9]+1
             end
             modem.send(data[1],data[2],part,tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9]) --parameter limit hit
-            os.sleep(0.1)
             modem.send(data[1],data[2],part,tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9])
-            os.sleep(0)
+            os.sleep(0.1)
         end
     else
         modem.send(data[1],data[2],tmp2[3],tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9])
-        os.sleep(0.1)
         modem.send(data[1],data[2],tmp2[3],tmp,tmp2[4],tmp2[5],tmp2[6],tmp2[7],data[8],data[9])
     end
     tmp=nil
