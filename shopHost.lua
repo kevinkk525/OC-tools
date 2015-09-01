@@ -382,6 +382,7 @@ end
 
 function s.startProcessing()
     hooks.m.send({export,801,{user_list[export_list[1].user],export_list[1].items},export_list[1].mode})
+    print("started order id "..f.getID())
     f.pause(s.finishProcessing)
     for i=1,#export_list do
         f.sendCommand(export_list[i].address,"updateInfo","You are #"..i.." in queue, please have patience")
@@ -390,8 +391,11 @@ function s.startProcessing()
 end
 
 function s.finishProcessing()
+    print("finishing order from "..f.getData()[3])
     if f.getData()[6]==true then
+        print("successfull")
         if export_list[1].mode=="importFrom" then
+            print(export_list[1].mode)
             local ret=eco.pay(shopOwner,ownerPassword,export_list[1].user,"Kevrium: Sell #"..trans[export_list[1].user].id,export_list[1].price)
             if ret~=true then
                 ret="Error paying you "..export_list[1].price..", please contact the ShopOwner immediately!"
@@ -402,14 +406,17 @@ function s.finishProcessing()
             trans[export_list[1].user]=nil
             table.remove(export_list,1)
         else
+            print(export_list[1].mode)
             fs.remove("/tmp/"..trans[export_list[1].user].id)
             f.sendCommand(export_list[1].address,"updateInfo",true)
             trans[export_list[1].user]=nil
             table.remove(export_list,1)
         end
     else
+        print("unsuccessfull")
         local ret
         if export_list[1].mode=="exportTo" then
+            print(export_list[1].mode)
             if f.getData()[6]:find("Error during transmission, refunded") then
                 local a,b=f.getData():find("Error during transmission, refunded ")
                 log("Error but refunded with "..f.getData()[6]:sub(b+1))
@@ -419,6 +426,7 @@ function s.finishProcessing()
                 ret=f.getData()[6]
             end
         else
+            print(export_list[1].mode)
             if f.getData()[6]=="error adding balance after failed import and failed sending back" then
                 local a,b=f.getData()[6]:find(",")
                 log("Import failed and sending back too. Refund of "..f.getData()[6]:sub(a+1).." was not possible, Contact shop owner")
