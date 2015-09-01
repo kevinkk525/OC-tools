@@ -301,7 +301,7 @@ function f.execute(short) --short: execution without dynamic sleep time
     end
     if exec==true then
         local exec=true
-        if r[#r].timeout<=computer.uptime()+task_timeout then
+        if r[#r].timeout+task_timeout<=computer.uptime() then
             r[r[#r].id]=nil
             f.remove()
             exec=false
