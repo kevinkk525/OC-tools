@@ -1,5 +1,5 @@
 ---------------
-local version="0.3b"
+local version="0.4b"
 local author="kevinkk525"
 ---------------config section
 local hard_currency=false
@@ -333,15 +333,18 @@ function s.buy(user,pass,items,price) --structure items: {[hash]={[size]=size,[1
     if not user or not pass or not items or not price then
         return "Wrong input, you need a user, a password and items and precalculated price"
     end
+    if not user_list[user] then
+        return "We are sorry, but you are not registered. Talk to the Owner!"
+    end
+    if trans[user] and trans[user].status=="processing" then
+        return "You already have submitted an order"
+    end
     if check~=true then
         return check
     end
     local ret=eco.login(user,pass)
     if ret~=true then
         return ret
-    end
-    if not user_list[user] then
-        return "We are sorry, but you are not registered. Talk to the Owner!"
     end
     if trans[user] and price and calculatePrice(items,trans[user].id,"s")==price then
         local ret=s.receivePayment(user,pass,"Kevrium: Buy #"..trans[user].id,price) --add check from owner side?
@@ -363,6 +366,12 @@ function s.sell(user,pass,items,price) --add item amount check --> chest
     if not user or not pass or not items or not price then
         return "Wrong input, you need a user, a password and items and precalculated price"
     end
+    if not user_list[user] then
+        return "We are sorry, but you are not registered. Talk to the Owner!"
+    end
+    if trans[user] and trans[user].status=="processing" then
+        return "You already have submitted an order"
+    end
     local check=checkItems(items)
     if check~=true then
         return check
@@ -370,9 +379,6 @@ function s.sell(user,pass,items,price) --add item amount check --> chest
     local ret=eco.login(user,pass)
     if ret~=true then
         return ret
-    end
-    if not user_list[user] then
-        return "We are sorry, but you are not registered. Talk to the Owner!"
     end
     if trans[user] and price and calculatePrice(items,trans[user].id,"b")==price then
         export_list[#export_list+1]={["user"]=user,["items"]=items,["mode"]="importFrom",["status"]="waiting",["address"]=f.getData()[3],["price"]=price}
