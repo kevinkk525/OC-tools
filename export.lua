@@ -466,7 +466,8 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
         os.sleep(0.2)
         trans.setSendChannel("item","ToShopChest",false)
         local balance=calculateBalance(getItems(),items)
-        if addBalance(user,balance) then
+        local ret=addBalance(user,balance)
+        if ret==true then
             trans.setSendChannel("item",user,false)
             trans.setIOMode(chest_dim_side,"disabled")
             me_import()
@@ -477,6 +478,7 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
             trans.setIOMode(chest_dim_side,"disabled")
             me_import()
             export_log("Error during transmission and refunding of "..balance)
+            export_log("returned "..ret)
             return "Error during transmission and refunding, contact your shop owner immediately!"
         end
     end
