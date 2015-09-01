@@ -78,7 +78,7 @@ end
 local function free_cached_msg()
     local up=computer.uptime()-lifetime_msg
     for i in pairs(recu) do
-        if i<=up then
+        if tonumber(i)<=tonumber(up) then
             for from in pairs(recu[i]) do
                 for mid in pairs(rec[from]) do
                     rec[from][mid]=nil
@@ -95,6 +95,7 @@ local function free_cached_msg()
                     rec.size=rec.size-1
                     if rec.size==0 then
                         rec={}
+                        rec.size=0
                     end
                 end
             end
@@ -259,6 +260,7 @@ end
 
 function m.initialize(handler)
     rec={} --received_list
+    rec.size=0
     recu={}
     f=handler
     if f~=nil then

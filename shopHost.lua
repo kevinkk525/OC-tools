@@ -260,6 +260,8 @@ function s.receivePayment(user,pass,message,balance)
     return eco.pay(user,pass,shopOwner,message,balance)
 end
 
+function s.getTransTable() return trans end
+
 function s.initTrade(user)
     if not user then return "Please specify user" end
     if not trans[user] then
@@ -268,6 +270,9 @@ function s.initTrade(user)
         trans[user].address=f.getData()[3]
     end
     local file=io.open("/tmp/"..trans[user].id,"w")
+    if not file then
+        print("Error, file not found???")
+    end
     file:write(serialization.serialize(trade_table))
     file:close()
     return trade_table
