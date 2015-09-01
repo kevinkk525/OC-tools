@@ -31,7 +31,6 @@ local function added()
 end
 
 local function waiting()
-    increment("timeout")
     if r[r[#r].id]==nil then
         f.remove()
     else 
@@ -152,7 +151,7 @@ function f.addTask(command,data,id,source,status,add_Data_position,add_Data,prio
     tmp.com=command
     tmp.data=data
     tmp.status=status
-    tmp.timeout=0
+    tmp.timeout=computer.uptime()
     tmp.lifetime=0
     tmp.id=id
     tmp[add_Data_position]=add_Data
@@ -302,7 +301,7 @@ function f.execute(short) --short: execution without dynamic sleep time
     if exec==true then
         local exec=true
         increment("lifetime")
-        if r[#r].timeout==task_timeout then
+        if r[#r].timeout==computer.uptime()+task_timeout then
             r[r[#r].id]=nil
             f.remove()
             exec=false
