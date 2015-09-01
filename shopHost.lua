@@ -431,7 +431,7 @@ function s.finishProcessing()
                 ret=f.getData()[6]
             end
         else
-            if f.getData()[6]=="error adding balance after failed import and failed sending back" then
+            if f.getData()[6]:find("error adding balance after failed import and failed sending back") then
                 local a,b=f.getData()[6]:find(",")
                 log("Import failed and sending back too. Refund of "..f.getData()[6]:sub(a+1).." was not possible, Contact shop owner")
                 ret="Import failed and sending back too. Refund of "..f.getData()[6]:sub(a+1).." was not possible, Contact shop owner"
