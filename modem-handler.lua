@@ -1,5 +1,5 @@
 ------------------------------
-local version="1.7b"
+local version="1.7.1b"
 ------------------------------
 local request_timeout=10
 ------------------------------
@@ -253,9 +253,10 @@ function m.remoteRequest(target,com,data,port,timeout,try)
         end
         if timeout<=0 then
             f.remove(id)
-            if not try or try<2 then
-                print("debug modem_handler: try 2")
-                return m.remoteRequest(target,com,data,port,timeout,2)
+            if not try or try<4 then
+                try=try or 2
+                print("debug modem_handler: try "..try)
+                return m.remoteRequest(target,com,data,port,timeout,try)
             end
             return false,"timed out"
         end
