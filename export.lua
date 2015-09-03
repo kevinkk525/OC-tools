@@ -1,5 +1,5 @@
 ---config section
-local version="0.5b"
+local version="0.5.2b"
 local database_entries=81
 local stack_exp_side=0
 local half_exp_side=3
@@ -375,6 +375,7 @@ function s.import(user,items)
     trans.setReceiveChannel("item",user,false)
     if not err then
         log("timeout during import")
+        return false,nil,"timeout during import"
     end
     if not s.changeSwitch(user,"close") then
         log("error closing the switch")
