@@ -36,7 +36,7 @@ local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,
     data[1]=nil
     data[2]=nil
     local id=nil
-    id=data[12] or data[9] --data[12] should only be an id in the answer!
+    id=data[12] --data[12] should only be an id in the answer!
     local com=data[8]
     data[8]=nil
     data[7]=nil

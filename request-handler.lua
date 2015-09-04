@@ -16,7 +16,7 @@ local priority_tasks={}
 local del_after_exec={}
 hooks={}
 local ext={}
-local task_timeout=30
+local task_timeout=60
 
 --add coroutine possibility to pause() & continue()
 --add f.warning()
@@ -309,6 +309,7 @@ function f.execute(short) --short: execution without dynamic sleep time
     if exec==true then
         local exec=true
         if r[#r].timeout+task_timeout<=computer.uptime() then
+            print("f: rem_timeout, id: "..r[#r].id..",com: "..tostring(r[#r].com).." ,data: "..serialization.serialize(r[#r].data))
             r[r[#r].id]=nil
             f.remove()
             exec=false
