@@ -479,7 +479,7 @@ function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},
 end
 
 function s.removeItem(items)--structure: index=[hash]
-    if not authShopControl() then
+    if not authShopControl() or not f.getSource()=="internal" then
         return "Not authenticated to use this"
     end
     if f.remoteRequest(export,"removeItem",items) then
@@ -497,7 +497,7 @@ function s.removeItem(items)--structure: index=[hash]
 end
 
 function s.updateTradeTable(tab)
-    if not authShopControl() then
+    if not authShopControl() or f.getSource()=="internal" then
         return "Not authenticated to use this"
     end
     return f.remoteRequest(export,"updateTradeTable",tab)

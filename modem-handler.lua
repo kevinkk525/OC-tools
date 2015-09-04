@@ -255,8 +255,8 @@ function m.remoteRequest(target,com,data,port,timeout,try)
             f.remove(id)
             if not try or try<4 then
                 try=try or 2
-                print("debug modem_handler: try "..try)
-                return m.remoteRequest(target,com,data,port,timeout,try)
+                print("debug modem_handler: try #"..try)
+                return m.remoteRequest(target,com,data,port,timeout,try+1)
             end
             return false,"timed out"
         end
