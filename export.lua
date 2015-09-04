@@ -92,7 +92,7 @@ end
 
 local function addBalance(user,balance) ------SHopHost not present??
     --depending on server use bank-API or own accounts...
-    return f.remoteRequest(ShopHost,"addBalance",{user,balance})
+    return f.remoteRequest(shopHost,"addBalance",{user,balance})
 end
 
 local function initTradeTable() --structure: size=int,hash={s/b={{amount,prize},...},name=label?}
