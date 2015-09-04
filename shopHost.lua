@@ -423,7 +423,7 @@ function s.finishProcessing()
         local ret
         if export_list[1].mode=="exportTo" then
             if f.getData()[6]:find("Error during transmission, refunded") then
-                local a,b=f.getData():find("Error during transmission, refunded ")
+                local a,b=f.getData()[6]:find("Error during transmission, refunded ")
                 log("Error but refunded with "..f.getData()[6]:sub(b+1))
                 ret="There was an error but you got refunded with "..f.getData()[6]:sub(b+1)
             else
