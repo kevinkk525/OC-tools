@@ -243,6 +243,7 @@ function m.remoteRequest(target,com,data,port,timeout,try)
     f.moveTo(nil,id)
     f.execute()
     timeout=timeout or request_timeout
+    local timeout_t=timeout
     while true do
         os.sleep(0.1)
         timeout=timeout-0.1
@@ -256,7 +257,7 @@ function m.remoteRequest(target,com,data,port,timeout,try)
             if not try or try<4 then
                 try=try or 2
                 print("debug modem_handler: try #"..try)
-                return m.remoteRequest(target,com,data,port,timeout,try+1)
+                return m.remoteRequest(target,com,data,port,timeout_t,try+1)
             end
             return false,"timed out"
         end
