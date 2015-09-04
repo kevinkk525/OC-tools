@@ -90,8 +90,9 @@ local function log(str)
     print(str) --expand to real logging of errors
 end
 
-local function addBalance(user,balance)
+local function addBalance(user,balance) ------SHopHost not present??
     --depending on server use bank-API or own accounts...
+    print(tostring(shopHost))
     return f.remoteRequest(ShopHost,"addBalance",{user,balance})
 end
 
@@ -471,7 +472,7 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
         me_import()
         local balance=calculateBalance(items,items)
         local res=addBalance(user,balance)
-        if res==true then --weird error here, + recheck refunding, does not seem to work
+        if res==true then 
             export_log("Error during transmission, refunded "..balance)
             return "Error during transmission, refunded "..balance
         else
