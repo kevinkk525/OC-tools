@@ -98,7 +98,7 @@ end
 local function initTradeTable() --structure: size=int,hash={s/b={{amount,prize},...},name=label?}
     trade_table={}
     trade_table.size=0
-    --trade_table=f.remoteRequest(shopHost,"getTradeTable")  --deactivated for debugging
+    trade_table=f.remoteRequest(shopHost,"getTradeTable")  --deactivated for debugging
     deactivated={}
     deactivated.size=0
     for item in pairs(trade_table) do 
@@ -395,7 +395,7 @@ function s.import(user,items)
         if items.price>imported_money then
             return false,imported,"not correct money amount"
         elseif items.price<imported_money then
-            if not addBalance(user,imported_money-items.price) then
+            if addBalance(user,imported_money-items.price)~=true then
                 log("error during refunding of overpaid export")
             end
         end
@@ -425,7 +425,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
             os.sleep(0.2)
             trans.setSendChannel("item","ToShopChest",false)
             local balance=calculateBalance(getItems(),items)
-            if not addBalance(user,balance) then
+            if addBalance(user,balance)~=true then
                 log("Error adding balance "..balance.." after failed import and failed sending back")
                 me_import()
                 trans.setIOMode(chest_dim_side,"disabled")
@@ -467,7 +467,7 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
         os.sleep(0.2)
         trans.setSendChannel("item","ToShopChest",false)
         local balance=calculateBalance(getItems(),items)
-        if addBalance(user,balance) then --weird error here, + recheck refunding, does not seem to work
+        if addBalance(user,balance)==true then --weird error here, + recheck refunding, does not seem to work
             trans.setSendChannel("item",user,false)
             trans.setIOMode(chest_dim_side,"disabled")
             me_import()
