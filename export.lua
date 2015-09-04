@@ -92,7 +92,6 @@ end
 
 local function addBalance(user,balance) ------SHopHost not present??
     --depending on server use bank-API or own accounts...
-    print(tostring(shopHost))
     return f.remoteRequest(ShopHost,"addBalance",{user,balance})
 end
 
