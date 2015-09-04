@@ -187,11 +187,11 @@ function f.addTask(command,data,id,source,status,add_Data_position,add_Data,prio
     return id
 end
 
-function f.remove(x)
-    f.delete(x)
+function f.delete(x)
+    f.remove(x)
 end
 
-function f.delete(x)
+function f.remove(x)
     x=x or #r
     if r[x] then
         if r[x].delete~=nil then
@@ -286,7 +286,7 @@ end
 function f.execute(short) --short: execution without dynamic sleep time
     if r[#r]~=nil then
         if r[#r].id=="remove" then
-            f.remove()
+            f.remove(r[#r].id)
         end
     end
     if not short then
@@ -309,9 +309,8 @@ function f.execute(short) --short: execution without dynamic sleep time
     if exec==true then
         local exec=true
         if r[#r].timeout+task_timeout<=computer.uptime() then
-            print("f: rem_timeout, id: "..r[#r].id..",com: "..tostring(r[#r].com).." ,data: "..serialization.serialize(r[#r].data))
-            r[r[#r].id]=nil
-            f.remove()
+            print("debug f: rem_timeout, id: "..r[#r].id..",com: "..tostring(r[#r].com).." ,data: "..serialization.serialize(r[#r].data))
+            f.remove(r[#r].id)
             exec=false
         end
         if exec then
@@ -346,7 +345,7 @@ function f.execute(short) --short: execution without dynamic sleep time
                     end
                 end
                 if r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status] then
-                    f.remove()
+                    f.remove(r[#r].id)
                 elseif r[#r]~=nil and r[#r].id==tmp_id and del_after_exec[r[#r].status]==false then
                     f.moveTo(1)
                 end
