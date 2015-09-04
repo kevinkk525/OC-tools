@@ -357,6 +357,7 @@ function f.execute(short) --short: execution without dynamic sleep time
     end
     if #priority_tasks>0 then
         for i=1,#priority_tasks,1 do
+            os.sleep(0.1)
             --for j=1,#state[priority_tasks[i].status],1 do
                 priority_tasks[i].com(priority_tasks[i].data) --priority tasks currently only support internal execution without state support and wait
             --end
