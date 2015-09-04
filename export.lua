@@ -452,7 +452,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
         return "sent back, wrong items"
     else
         me_import()
-        return true,"imported successfully"
+        return true
     end
 end
 
@@ -461,7 +461,7 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
     local success,err=s.export(user,items)
     print(err)
     if success then
-        return true,"sent"
+        return true
     else
         trans.setSendChannel("item",user,false)
         trans.setIOMode(chest_dim_side,"disabled")
