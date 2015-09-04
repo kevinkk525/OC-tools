@@ -375,6 +375,10 @@ function s.import(user,items)
     trans.setReceiveChannel("item",user,false)
     if not err then
         log("timeout during import")
+        if not s.changeSwitch(user,"close") then
+            log("error closing the switch")
+            return false,nil,"switch error during import timeout"
+        end
         return false,nil,"timeout during import"
     end
     if not s.changeSwitch(user,"close") then
@@ -435,7 +439,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
                 end
                 return "error adding balance after failed import and failed sending back,"..balance
             end
-            if not s.changeSwitch(user,"send") then
+            if not s.changeSwitch(user,"close") then
                 log("error closing switch")
             end
             me_import()
@@ -444,7 +448,7 @@ function s.importFrom(user,items) --items: hash={[size]=amount,[1]=price}
             log("failed sending back, refunded "..balance)
             return "failed sending back, refunded "..balance
         end
-        if not s.changeSwitch(user,"send") then
+        if not s.changeSwitch(user,"close") then
             log("error closing switch")
         end
         trans.setIOMode(chest_dim_side,"disabled")

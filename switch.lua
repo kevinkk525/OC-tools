@@ -1,5 +1,5 @@
 ---------------
-local version="0.9.8b"
+local version="0.9.9b"
 ---------------
 
 --sides: down:0,up:1,south:3,east:5
@@ -172,6 +172,7 @@ function s.getTransNumber() return #trans end
 function s.receive(username)
     if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
     trans[user[username]].setSendChannel("item",username,true)
+    trans[user[username]].setReceiveChannel("item",username,false)
     trans[user[username]].setIOMode(3,"pull")
     print(username.." activated pull")
     return true,"receiving"
@@ -180,6 +181,7 @@ end
 function s.send(username)  
     if not user[username] then print("user "..username.." does not exist") return false,"no such user" end
     trans[user[username]].setReceiveChannel("item",username,true)
+    trans[user[username]].setSendChannel("item",username,false)
     trans[user[username]].setIOMode(3,"push")
     print(username.." activated push")
     return true,"sending"
