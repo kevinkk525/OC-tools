@@ -463,25 +463,22 @@ function s.exportTo(user,items) --add time in errorlog; items structure: hash={s
     if success then
         return true,"sent"
     else
+        trans.setSendChannel("item",user,false)
+        trans.setIOMode(chest_dim_side,"disabled")
         trans.setSendChannel("item","ToShopChest",true)
         os.sleep(0.2)
         trans.setSendChannel("item","ToShopChest",false)
-        local balance=calculateBalance(getItems(),items)
+        me_import()
+        local balance=calculateBalance(items,items)
         local res=addBalance(user,balance)
         if res==true then --weird error here, + recheck refunding, does not seem to work
-            trans.setSendChannel("item",user,false)
-            trans.setIOMode(chest_dim_side,"disabled")
-            me_import()
             export_log("Error during transmission, refunded "..balance)
             return "Error during transmission, refunded "..balance
         else
-            trans.setSendChannel("item",user,false)
-            trans.setIOMode(chest_dim_side,"disabled")
-            me_import()
             export_log("Error during transmission and refunding of "..balance)
             export_log(tostring(res))
             return "Error during transmission and refunding, contact your shop owner immediately!"
-        end
+        end       
     end
 end
 
