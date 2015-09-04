@@ -135,9 +135,16 @@ function f.addTask(command,data,id,source,status,add_Data_position,add_Data,prio
     add_Data=add_Data or nil
     add_Data_position=add_Data_position or 1
     status=status or "added"
-    if id~=nil then
+    if id~=nil and not source=="external" then
         status="ready"
         if r[id]==nil then
+            adding=false
+        end
+    end
+    if source=="external" then
+        if id and r[id] then
+            status="ready"
+        elseif id and not r[id] then
             adding=false
         end
     end
@@ -316,20 +323,23 @@ function f.execute(short) --short: execution without dynamic sleep time
                     end
                 else 
                     if ext[r[#r].com]~=nil then
-                        local tmp_return
+                        local tmp_return,tmpr2,tmpr3
                         if r[#r].data[10]~=1 then
-                            tmp_return=ext[r[#r].com](r[#r].data[6])
+                            tmp_return,tmpr2,tmpr3=ext[r[#r].com](r[#r].data[6])
                         else
-                            tmp_return=ext[r[#r].com](r[#r].data)
+                            tmp_return,tmpr2,tmpr3=ext[r[#r].com](r[#r].data)
                         end
                         if tmp_return~=nil then
-                            hooks.m.send({r[#r].data[3],r[#r].data[4],tmp_return,nil,r[#r].data[9] or r[#r].data[11]},true)
+                            if tmpr2~=nil then
+                                tmp_return={tmp_return,tmpr2,tmpr3}
+                            end
+                            hooks.m.send({r[#r].data[3],r[#r].data[4],tmp_return,nil,r[#r].data[9]},true)
                         end
                     else 
                         if hooks.m~=nil then
                             if hooks.m.note~=nil then
                                 hooks.m.note(r[#r].data[3])
-                                hooks.m.send({r[#r].data[3],r[#r].data[4],false,nil,r[#r].data[9] or r[#r].data[11]},true)
+                                hooks.m.send({r[#r].data[3],r[#r].data[4],"command not available",r[#r].data[9]},true)
                             end
                         end
                     end
@@ -434,6 +444,9 @@ function f.getStatus(id)
 end
 
 function f.getID()
+    if not r[#r] then
+        return nil
+    end
     return r[#r].id
 end
 

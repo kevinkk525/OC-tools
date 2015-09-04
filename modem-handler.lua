@@ -1,5 +1,5 @@
 ------------------------------
-local version="1.7.1b"
+local version="1.7.2b"
 ------------------------------
 local request_timeout=10
 ------------------------------
@@ -14,6 +14,7 @@ local recu={} --uptime table of received messages
 local parts={} --temporary storage for splitted messages
 local blacklist={}
 local event=require"event"
+local f
 modem.open(801)
 
 local timer --temporary
@@ -35,10 +36,7 @@ local function addTask(data) --f.addTask:command,data,id,source,status,add_Data,
     data[1]=nil
     data[2]=nil
     local id=nil
-    id=id or data[12] --data[12] should only be an id in the answer!
-    if type(data[9])~="table" then
-        id=data[9]
-    end
+    id=data[12] or data[9] --data[12] should only be an id in the answer!
     local com=data[8]
     data[8]=nil
     data[7]=nil
@@ -175,7 +173,7 @@ function m.send(data,answer) --[1]to,[2]port,[3]message,[4]com,[5]task-id (of re
     return true 
 end
 
-function m.receive(_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split) --[1]event_name,[2]receiving_card-addr,[3]from,[4]port,arg5,[6]message,[7]mid,[8]com,[9]task-id,[10]arg10,[11]task-id of request,[12]task-id of sending system,[13]split
+function m.receive(_,_,from,port,_,message,mid,com,task_id,arg10,request_id,taskID_origin,split) --[1]event,[2]receiving_card,[3]from,[4]port,[5]distance,[6]message,[7]mid,[8]com,[9]task-id(request),[10]arg10,[11]task-id(sending-system),[12]request-id(if answer),[13]split
     if blacklist[from] then
         if blacklist[from]<computer.uptime() then
             blacklist[from]=nil
