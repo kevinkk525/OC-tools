@@ -1,5 +1,5 @@
 ---config section
-local version="0.9.9.9.9b"
+local version="1.0b"
 ---
 ----- rewrite this more object oriented!!
 
@@ -168,8 +168,8 @@ function f.addTask(command,data,id,source,status,add_Data_position,add_Data,prio
         if status=="ready" then
             if r[id] then 
                 r[id].status="ready"
-                tmp=r[id]
-                tmp.data=data
+                r[id].data=data
+                return id
             end
         end
         if priority==nil then
