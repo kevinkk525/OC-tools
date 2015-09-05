@@ -112,7 +112,7 @@ local function free_cached_msg()
 end
 
 local function randID(x) 
-    local id=tostring(math.random(1,100)) 
+    local id=tostring(math.random(1,10000)) 
     if not x then 
         if rec[id] then 
             id=f.randID() 
