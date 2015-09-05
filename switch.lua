@@ -1,6 +1,8 @@
 ---------------
 local version="0.9.9b"
 ---------------
+local source_capacitor_Energy=5000000 --5000000 for creatie Capacitor
+
 
 --sides: down:0,up:1,south:3,east:5
 local component=require"component"
@@ -111,7 +113,7 @@ end
 function s.initTessIO()
     for a in component.list("dimensional_transceiver") do trans_tmp[#trans_tmp+1]=a end
     for a in component.list("capacitor_bank") do 
-        if component.proxy(a).getMaxEnergyStored()==5000000 then
+        if component.proxy(a).getMaxEnergyStored()==source_capacitor_Energy then
             eSource_tmp[#eSource_tmp+1]=a
         else
             eBuffer_tmp[#eBuffer_tmp+1]=a

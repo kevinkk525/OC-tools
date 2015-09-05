@@ -458,7 +458,7 @@ function s.export_control()
     end
 end
 
-function s.addItem(items) --structure: index={[1]=nbt,{s/b={{amount,prize},...},name=label?}} 
+function s.addItem(items) --structure: index={[1]={nbt,s/b={{amount,prize},...},name=label?}} 
     if not authShopControl() or not f.getSource()=="internal" then
         return "Not authenticated to use this"
     end

@@ -18,6 +18,7 @@ local hard_currency=false
 
 --sides: down:0,up:1,south:3,east:5,
 --items need to be in ME-network
+--3 acc up,2N,0E,1D
 --slot 1 of each database has to be empty for temporary operations
 --no safety if database gets full
 
