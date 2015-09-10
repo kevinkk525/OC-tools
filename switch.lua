@@ -1,7 +1,7 @@
 ---------------
 local version="0.9.9b"
 ---------------
-local source_capacitor_Energy=5000000 --5000000 for creatie Capacitor
+local source_capacitor_Energy=5000000 --5000000 for creative Capacitor
 
 
 --sides: down:0,up:1,south:3,east:5

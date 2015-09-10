@@ -26,6 +26,7 @@ local f
 local shopOwner
 local ownerPassword
 local trade_table={} --structure: size=int,hash={s/b={{amount,prize},...},name=label?}
+trade_table.size=0
 local trans={} --structure: [user]={[uptime]=uptime,[status]=status,[trans-id]=randID}
 local export_list={}
 local user_list={} --structure: [user]=channel,[channel]=user
