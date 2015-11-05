@@ -1,4 +1,5 @@
 -- id transformation program
+--usage: put in /lib and require, then generateIndex()
 
 local serialization=require"serialization"
 local c={}
