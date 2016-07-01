@@ -121,12 +121,14 @@ function x.count(input) --count given money table
     else
         local erg=0
         for i in pairs(input) do
-            local mon=input[i]
-            if type(mon)=="string" and input[mon]~=nil then
-                mon=input[mon]
-            end
-            if money[mon.label] then
-                erg=erg+money[mon.label]*mon.size
+            if tpye(input[i])~="number" then
+                local mon=input[i]
+                if type(mon)=="string" and input[mon]~=nil then
+                    mon=input[mon]
+                end
+                if money[mon.label] then
+                    erg=erg+money[mon.label]*mon.size
+                end
             end
         end
         return erg
