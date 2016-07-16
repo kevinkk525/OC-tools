@@ -1,12 +1,11 @@
 ---
-local version="0.8b"
+local version="0.9b"
 ---
 
 local component=require("component")
 local event = require("event")
 local keyboard = require("keyboard")
 local term = require("term")
-local internet=require("internet")
 gpu=component.gpu
 local running=true
 local hours=0
